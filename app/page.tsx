@@ -512,22 +512,6 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* Global styles for ECG animation */}
-      <style jsx global>{`
-        @keyframes ecg-flow {
-          0% {
-            stroke-dashoffset: 2400;
-          }
-          100% {
-            stroke-dashoffset: 0;
-          }
-        }
-        .animate-ecg {
-          stroke-dasharray: 1200;
-          stroke-dashoffset: 1200;
-          animation: ecg-flow 8s linear infinite;
-        }
-      `}</style>
     </div>
   )
 }
