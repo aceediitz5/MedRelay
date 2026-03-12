@@ -20,17 +20,86 @@ import {
   Sparkles,
   X,
   Crown,
+  GraduationCap,
+  Ambulance,
+  Hospital,
+  Microscope,
+  Eye,
+  Ear,
+  Droplet,
+  Thermometer,
+  Zap,
+  Shield,
+  Beaker,
+  HeartPulse,
+  Scan,
+  Scissors,
+  Waves,
+  FlaskConical,
 } from "lucide-react"
 
+// Expanded medical topics - comprehensive healthcare coverage
 const medicalTopics = [
-  { icon: Bone, name: "Anatomy", color: "text-amber-400" },
+  { icon: Bone, name: "Anatomy & Physiology", color: "text-amber-400" },
   { icon: Heart, name: "Cardiology", color: "text-red-400" },
   { icon: Activity, name: "Gastrointestinal", color: "text-green-400" },
   { icon: Pill, name: "Pharmacology", color: "text-purple-400" },
   { icon: Wind, name: "Respiratory", color: "text-sky-400" },
   { icon: Brain, name: "Neurology", color: "text-pink-400" },
-  { icon: Siren, name: "Trauma", color: "text-orange-400" },
-  { icon: Baby, name: "OB/GYN", color: "text-rose-400" },
+  { icon: Siren, name: "Trauma & Emergency", color: "text-orange-400" },
+  { icon: Baby, name: "OB/GYN & Pediatrics", color: "text-rose-400" },
+  { icon: Droplet, name: "Hematology", color: "text-red-300" },
+  { icon: Beaker, name: "Endocrinology", color: "text-yellow-400" },
+  { icon: Shield, name: "Immunology", color: "text-blue-400" },
+  { icon: Thermometer, name: "Infectious Disease", color: "text-lime-400" },
+  { icon: Eye, name: "Ophthalmology", color: "text-cyan-300" },
+  { icon: Ear, name: "ENT", color: "text-indigo-400" },
+  { icon: Waves, name: "Nephrology", color: "text-teal-400" },
+  { icon: Scan, name: "Radiology & Imaging", color: "text-violet-400" },
+  { icon: Scissors, name: "Surgery", color: "text-slate-300" },
+  { icon: HeartPulse, name: "Critical Care", color: "text-red-500" },
+  { icon: Zap, name: "Emergency Medicine", color: "text-amber-500" },
+  { icon: FlaskConical, name: "Pathology", color: "text-fuchsia-400" },
+]
+
+// Student tracks with curriculum paths
+const studentTracks = [
+  {
+    icon: Ambulance,
+    title: "EMS & Paramedic",
+    description: "NREMT prep, BLS/ALS protocols, field scenarios",
+    exams: ["NREMT-B", "NREMT-P", "State Certifications"],
+    color: "from-orange-500/20 to-red-500/20",
+    borderColor: "border-orange-500/30",
+    iconColor: "text-orange-400",
+  },
+  {
+    icon: Hospital,
+    title: "Nursing",
+    description: "NCLEX-RN/PN prep, clinical skills, patient care",
+    exams: ["NCLEX-RN", "NCLEX-PN", "CCRN"],
+    color: "from-pink-500/20 to-rose-500/20",
+    borderColor: "border-pink-500/30",
+    iconColor: "text-pink-400",
+  },
+  {
+    icon: Microscope,
+    title: "Pre-Med",
+    description: "MCAT fundamentals, core sciences, research methods",
+    exams: ["MCAT", "DAT", "OAT"],
+    color: "from-cyan-500/20 to-blue-500/20",
+    borderColor: "border-cyan-500/30",
+    iconColor: "text-cyan-400",
+  },
+  {
+    icon: GraduationCap,
+    title: "Medical School",
+    description: "USMLE Step prep, clinical rotations, boards review",
+    exams: ["USMLE Step 1", "USMLE Step 2", "COMLEX"],
+    color: "from-purple-500/20 to-indigo-500/20",
+    borderColor: "border-purple-500/30",
+    iconColor: "text-purple-400",
+  },
 ]
 
 const contentTypes = [
@@ -87,7 +156,7 @@ const pricingPlans = [
       { text: "Basic progress tracking", included: true },
       { text: "2 topics unlocked", included: true },
       { text: "Case simulations", included: false },
-      { text: "All 8 topics", included: false },
+      { text: "All 20+ topics", included: false },
       { text: "Instructor tools", included: false },
       { text: "Priority support", included: false },
     ],
@@ -100,10 +169,10 @@ const pricingPlans = [
     period: "per month",
     description: "Everything you need to pass",
     features: [
-      { text: "Unlimited flashcards", included: true },
-      { text: "Full question bank (15K+)", included: true },
+      { text: "2,000+ flashcards", included: true },
+      { text: "Full question bank (1,000+)", included: true },
       { text: "Advanced analytics", included: true },
-      { text: "All 8 topics unlocked", included: true },
+      { text: "All 20+ topics unlocked", included: true },
       { text: "All case simulations", included: true },
       { text: "Exam mode & timed tests", included: true },
       { text: "Offline access", included: true },
@@ -190,7 +259,7 @@ export default function LandingPage() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-medium mb-8">
             <Activity className="w-4 h-4" />
-            <span>Trusted by 10,000+ Medical Professionals</span>
+            <span>Trusted by 3K+ Medical Professionals</span>
           </div>
 
           {/* Headline */}
@@ -211,37 +280,69 @@ export default function LandingPage() {
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/auth/sign-up">
               <Button size="lg" className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-400 hover:to-blue-400 text-lg px-8 h-14 shadow-lg shadow-cyan-500/25">
-                Start Learning Now <ArrowRight className="ml-2 w-5 h-5" />
+                Start Learning Free <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>
             <Link href="#pricing">
               <Button size="lg" variant="outline" className="text-lg px-8 h-14 border-gray-700 text-gray-300 hover:bg-white/5 hover:text-white">
-                View Pricing
+                See Plans
               </Button>
             </Link>
           </div>
 
           {/* Trust indicators */}
-          <div className="mt-8 flex items-center justify-center gap-8 text-sm text-gray-500">
-            <span className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-cyan-500" /> No credit card required
-            </span>
-            <span className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-cyan-500" /> Cancel anytime
-            </span>
-          </div>
+          <p className="mt-6 text-sm text-gray-500">
+            Free forever plan available. Upgrade anytime.
+          </p>
 
           {/* Stats */}
           <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 pt-12 border-t border-white/5">
             {[
-              { value: "10K+", label: "Active Students" },
-              { value: "50K+", label: "Flashcards" },
-              { value: "15K+", label: "Practice Questions" },
+              { value: "3K+", label: "Active Students" },
+              { value: "2K+", label: "Flashcards" },
+              { value: "1K+", label: "Practice Questions" },
               { value: "98%", label: "Pass Rate" },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
                 <p className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">{stat.value}</p>
                 <p className="text-sm text-gray-500 mt-2">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Student Tracks Section */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-950/5 to-transparent" />
+        <div className="max-w-7xl mx-auto relative">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+              Choose Your Path
+            </h2>
+            <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+              Tailored curricula for every healthcare career. Select your track and get a personalized study plan.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {studentTracks.map((track) => (
+              <div
+                key={track.title}
+                className={`group relative rounded-2xl border ${track.borderColor} bg-gradient-to-br ${track.color} p-6 hover:scale-[1.02] transition-all duration-300 cursor-pointer`}
+              >
+                <div className={`w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center mb-4 ${track.iconColor}`}>
+                  <track.icon className="w-7 h-7" />
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-2">{track.title}</h3>
+                <p className="text-gray-400 text-sm mb-4 leading-relaxed">{track.description}</p>
+                <div className="flex flex-wrap gap-2">
+                  {track.exams.map((exam) => (
+                    <span key={exam} className="text-xs px-2 py-1 rounded-full bg-white/10 text-gray-300">
+                      {exam}
+                    </span>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
@@ -254,26 +355,26 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto relative">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Master Every Topic
+              Every Topic. Every Specialty.
             </h2>
             <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-              Comprehensive coverage across all major medical disciplines. Deep content, not shallow overviews.
+              Comprehensive coverage across 20+ medical disciplines. Deep content built for EMS, Nursing, and Medical School.
             </p>
           </div>
 
           {/* Topics Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-16">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 mb-16">
             {medicalTopics.map((topic) => (
               <div
                 key={topic.name}
-                className="group relative bg-white/[0.02] border border-white/5 rounded-2xl p-6 hover:border-cyan-500/30 hover:bg-cyan-500/5 transition-all duration-300 cursor-pointer"
+                className="group relative bg-white/[0.02] border border-white/5 rounded-xl p-4 hover:border-cyan-500/30 hover:bg-cyan-500/5 transition-all duration-300 cursor-pointer"
               >
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative flex flex-col items-center text-center gap-3">
-                  <div className={`w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center ${topic.color}`}>
-                    <topic.icon className="w-6 h-6" />
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="relative flex items-center gap-3">
+                  <div className={`w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center shrink-0 ${topic.color}`}>
+                    <topic.icon className="w-4 h-4" />
                   </div>
-                  <span className="font-medium text-gray-200 group-hover:text-white transition-colors">{topic.name}</span>
+                  <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors leading-tight">{topic.name}</span>
                 </div>
               </div>
             ))}
@@ -324,7 +425,7 @@ export default function LandingPage() {
               {
                 step: "01",
                 title: "Choose Your Track",
-                description: "Select EMS, pre-med, or nursing. Content auto-adapts to your certification exam.",
+                description: "Select EMS, Nursing, Pre-Med, or Medical School. Your curriculum auto-adapts to your certification path.",
                 icon: Sparkles,
               },
               {
@@ -367,7 +468,7 @@ export default function LandingPage() {
               Simple, Transparent Pricing
             </h2>
             <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-              Start free. Upgrade when you're ready for unlimited access.
+              Start free. Upgrade when you need unlimited access to all content and features.
             </p>
           </div>
 
@@ -425,6 +526,12 @@ export default function LandingPage() {
                     {plan.cta}
                   </Button>
                 </Link>
+
+                {plan.popular && (
+                  <p className="text-center text-sm text-gray-500 mt-4">
+                    Cancel anytime. No questions asked.
+                  </p>
+                )}
               </div>
             ))}
           </div>
@@ -477,21 +584,16 @@ export default function LandingPage() {
                 Your Future Patients Need You Ready.
               </h2>
               <p className="text-lg text-gray-400 mb-8 max-w-xl mx-auto leading-relaxed">
-                Don't leave your certification to chance. Start studying smarter today.
+                {"Don't"} leave your certification to chance. Start studying smarter today.
               </p>
               <Link href="/auth/sign-up">
                 <Button size="lg" className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-400 hover:to-blue-400 text-lg px-10 h-14 shadow-lg shadow-cyan-500/25">
                   Create Free Account <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
-              <div className="mt-6 flex items-center justify-center gap-6 text-sm text-gray-500">
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle className="w-4 h-4 text-cyan-500" /> No credit card required
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle className="w-4 h-4 text-cyan-500" /> Free tier available
-                </span>
-              </div>
+              <p className="mt-6 text-sm text-gray-500">
+                Free forever plan. No credit card required.
+              </p>
             </div>
           </div>
         </div>
