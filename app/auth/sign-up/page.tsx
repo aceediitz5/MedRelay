@@ -62,7 +62,8 @@ export default function SignUpPage() {
       return
     }
 
-    router.push("/auth/sign-up-success")
+    setLoading(false)
+router.push("/auth/sign-up-success")
   }
 
   return (
