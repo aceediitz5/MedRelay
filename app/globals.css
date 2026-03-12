@@ -192,3 +192,19 @@
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
+
+/* ECG heartbeat line animation */
+@keyframes ecg-flow {
+  0% {
+    stroke-dashoffset: 2400;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-ecg {
+  stroke-dasharray: 1200;
+  stroke-dashoffset: 1200;
+  animation: ecg-flow 8s linear infinite;
+}
