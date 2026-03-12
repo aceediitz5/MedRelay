@@ -80,16 +80,16 @@ export function CaseSimulation({ simulation, progress, userId }: CaseSimulationP
   )
   const [isComplete, setIsComplete] = useState(progress?.status === "completed")
 
-  if (!simulation.scenario_data) {
-  return (
-    <div className="p-8 text-center text-muted-foreground">
-      This simulation has no content yet.
-    </div>
-  )
-}
-
 const scenario = simulation.scenario_data
-const steps = scenario.steps || []
+const steps = scenario?.steps || []
+  if (!scenario) {
+    return (
+      <div className="p-8 text-center text-muted-foreground">
+        This simulation has no content yet.
+      </div>
+    )
+  }
+
   const currentQuestion = steps[currentStep]
   const progressPercent = steps.length > 0 ? Math.round(((currentStep + (showFeedback ? 1 : 0)) / steps.length) * 100) : 0
 
