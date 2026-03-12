@@ -42,6 +42,14 @@ export function QuestionPractice({ questions, userId, mode }: QuestionPracticePr
   const [sessionComplete, setSessionComplete] = useState(false)
 
   const currentQuestion = questions[currentIndex]
+
+  if (!currentQuestion?.options) {
+    return (
+      <div className="p-8 text-center text-muted-foreground">
+        This question has no content yet.
+      </div>
+    )
+  }
   const progress = questions.length > 0 ? Math.round((answers.size / questions.length) * 100) : 0
   const correctAnswers = Array.from(answers.values()).filter(a => a.correct).length
 

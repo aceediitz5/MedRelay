@@ -81,12 +81,12 @@ export function CaseSimulation({ simulation, progress, userId }: CaseSimulationP
   const [isComplete, setIsComplete] = useState(progress?.status === "completed")
 
   const scenario = simulation.scenario_data
-  const steps = scenario.steps || []
+  const steps = scenario?.steps || []
   const currentQuestion = steps[currentStep]
   const progressPercent = steps.length > 0 ? Math.round(((currentStep + (showFeedback ? 1 : 0)) / steps.length) * 100) : 0
 
   const saveProgress = useCallback(async (
-    stepIndex: number, 
+    stepIndex: number,
     newAnswers: Map<number, { selected: number; correct: boolean }>,
     completed: boolean
   ) => {
@@ -108,7 +108,6 @@ export function CaseSimulation({ simulation, progress, userId }: CaseSimulationP
       })
 
     if (completed) {
-      // Update daily log
       const today = new Date().toISOString().split("T")[0]
       const { data: existingLog } = await supabase
         .from("daily_study_log")
@@ -161,7 +160,6 @@ export function CaseSimulation({ simulation, progress, userId }: CaseSimulationP
       setSelectedAnswer(null)
       setShowFeedback(false)
     } else {
-      // Complete the simulation
       setIsComplete(true)
       await saveProgress(currentStep, answers, true)
     }
@@ -184,6 +182,14 @@ export function CaseSimulation({ simulation, progress, userId }: CaseSimulationP
 
   const correctCount = Array.from(answers.values()).filter(a => a.correct).length
   const finalScore = steps.length > 0 ? Math.round((correctCount / steps.length) * 100) : 0
+
+  if (!scenario) {
+    return (
+      <div className="p-8 text-center text-muted-foreground">
+        This simulation has no content yet.
+      </div>
+    )
+  }
 
   if (isComplete) {
     return (
@@ -358,8 +364,8 @@ export function CaseSimulation({ simulation, progress, userId }: CaseSimulationP
                       !showResult && !isSelected && "bg-muted text-muted-foreground"
                     )}>
                       {showResult ? (
-                        isCorrect ? <CheckCircle className="w-4 h-4" /> : 
-                        isSelected ? <AlertCircle className="w-4 h-4" /> : 
+                        isCorrect ? <CheckCircle className="w-4 h-4" /> :
+                        isSelected ? <AlertCircle className="w-4 h-4" /> :
                         String.fromCharCode(65 + index)
                       ) : (
                         String.fromCharCode(65 + index)
@@ -376,8 +382,8 @@ export function CaseSimulation({ simulation, progress, userId }: CaseSimulationP
           {showFeedback && (
             <div className={cn(
               "mt-6 p-4 rounded-lg border",
-              selectedAnswer === currentQuestion.correct_answer 
-                ? "bg-success/10 border-success/30" 
+              selectedAnswer === currentQuestion.correct_answer
+                ? "bg-success/10 border-success/30"
                 : "bg-destructive/10 border-destructive/30"
             )}>
               <p className={cn(
@@ -387,8 +393,8 @@ export function CaseSimulation({ simulation, progress, userId }: CaseSimulationP
                 {selectedAnswer === currentQuestion.correct_answer ? "Correct!" : "Incorrect"}
               </p>
               <p className="text-muted-foreground text-sm">
-                {selectedAnswer === currentQuestion.correct_answer 
-                  ? currentQuestion.feedback.correct 
+                {selectedAnswer === currentQuestion.correct_answer
+                  ? currentQuestion.feedback.correct
                   : currentQuestion.feedback.incorrect}
               </p>
             </div>
@@ -399,7 +405,7 @@ export function CaseSimulation({ simulation, progress, userId }: CaseSimulationP
       {/* Actions */}
       <div className="flex items-center justify-end gap-4">
         {!showFeedback ? (
-          <Button 
+          <Button
             onClick={handleSubmit}
             disabled={selectedAnswer === null}
             className="bg-primary text-primary-foreground hover:bg-primary/90"
@@ -407,7 +413,7 @@ export function CaseSimulation({ simulation, progress, userId }: CaseSimulationP
             Submit
           </Button>
         ) : (
-          <Button 
+          <Button
             onClick={handleNext}
             className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
