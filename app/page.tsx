@@ -66,9 +66,10 @@ const medicalTopics = [
 const studentTracks = [
   {
     icon: Ambulance,
-    title: "EMS & Paramedic",
+    title: "EMT & Paramedic",
+    slug: "emt",
     description: "NREMT prep, BLS/ALS protocols, field scenarios",
-    exams: ["NREMT-B", "NREMT-P", "State Certifications"],
+    exams: ["NREMT-B", "NREMT-P", "State Certs"],
     color: "from-orange-500/20 to-red-500/20",
     borderColor: "border-orange-500/30",
     iconColor: "text-orange-400",
