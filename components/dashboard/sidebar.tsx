@@ -27,20 +27,20 @@ import { useRouter } from "next/navigation"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/achievements", label: "Achievements", icon: Trophy },
-  { href: "/exam-prep", label: "Exam Prep", icon: Package },
-  { href: "/exam-readiness", label: "Exam Readiness", icon: Shield },
-  { href: "/flashcards", label: "Flashcards", icon: BookOpen },
-  { href: "/study-plan", label: "Study Plan", icon: Calendar },
-  { href: "/case-simulations", label: "Case Simulations", icon: Stethoscope },
-  { href: "/questions", label: "Question Bank", icon: HelpCircle },
+  { href: "/dashboard/achievements", label: "Achievements", icon: Trophy },
+  { href: "/dashboard/exam-prep", label: "Exam Prep", icon: Package },
+  { href: "/dashboard/exam-readiness", label: "Exam Readiness", icon: Shield },
+  { href: "/dashboard/flashcards", label: "Flashcards", icon: BookOpen },
+  { href: "/dashboard/study-plan", label: "Study Plan", icon: Calendar },
+  { href: "/dashboard/simulations", label: "Case Simulations", icon: Stethoscope },
+  { href: "/dashboard/questions", label: "Question Bank", icon: HelpCircle },
 ]
 
 const bottomItems = [
-  { href: "/instructor", label: "Instructor", icon: GraduationCap },
-  { href: "/profile", label: "Profile", icon: User },
-  { href: "/pricing", label: "Pricing", icon: Crown },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard/instructor", label: "Instructor", icon: GraduationCap },
+  { href: "/dashboard/profile", label: "Profile", icon: User },
+  { href: "/dashboard/pricing", label: "Pricing", icon: Crown },
+  { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ]
 
 interface SidebarProps {
