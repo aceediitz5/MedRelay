@@ -1,64 +1,98 @@
+"use client"
+
 import { GlassCard } from "@/components/ui/glass-card"
 import { Button } from "@/components/ui/button"
-import { CheckCircle, Crown, Zap, Users, Star } from "lucide-react"
+import { useSubscription } from "@/lib/subscription/context"
+import {
+  CheckCircle,
+  XCircle,
+  Crown,
+  Zap,
+  Star,
+  BookOpen,
+  HelpCircle,
+  Stethoscope,
+  TrendingUp,
+  Shield,
+  Clock,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
+
+// Comparison features for the table
+const comparisonFeatures = [
+  {
+    category: "Daily Study",
+    features: [
+      { name: "Flashcards per day", free: "20", pro: "Unlimited" },
+      { name: "Practice questions per day", free: "10", pro: "Unlimited" },
+      { name: "Case simulations", free: "Preview only", pro: "Full access" },
+    ],
+  },
+  {
+    category: "Content Access",
+    features: [
+      { name: "Full question bank (1,000+)", free: false, pro: true },
+      { name: "Full flashcard library (2,000+)", free: false, pro: true },
+      { name: "All 20+ medical topics", free: false, pro: true },
+      { name: "Exam prep programs", free: "View only", pro: "Full access" },
+    ],
+  },
+  {
+    category: "Features",
+    features: [
+      { name: "Advanced analytics", free: false, pro: true },
+      { name: "XP & achievements", free: false, pro: true },
+      { name: "Daily study engine", free: false, pro: true },
+      { name: "Progress tracking", free: "Basic", pro: "Advanced" },
+      { name: "Spaced repetition algorithm", free: false, pro: true },
+    ],
+  },
+]
 
 const plans = [
   {
     name: "Free",
     price: "$0",
     period: "forever",
-    description: "Get started with basic features",
+    description: "Get started with essential study tools",
+    icon: BookOpen,
     features: [
-      "100 flashcard reviews/month",
-      "50 practice questions/month",
-      "3 case simulations",
+      "20 flashcards per day",
+      "10 practice questions per day",
+      "Case simulation previews",
       "Basic progress tracking",
-      "Community support",
+      "Access to select topics",
     ],
     cta: "Current Plan",
     current: true,
     popular: false,
   },
   {
-    name: "Pro",
+    name: "MedRelay Pro",
     price: "$12",
     period: "/month",
-    description: "Everything you need to succeed",
+    description: "Everything you need to pass your exams",
+    icon: Crown,
     features: [
       "Unlimited flashcard reviews",
       "Unlimited practice questions",
-      "All case simulations",
-      "Advanced analytics",
+      "Full case simulation access",
+      "All exam prep programs",
+      "Advanced analytics & tracking",
+      "XP & achievements system",
+      "All 20+ medical topics",
+      "Daily study engine",
       "Spaced repetition algorithm",
-      "Offline mode",
-      "Priority support",
     ],
     cta: "Upgrade to Pro",
     current: false,
     popular: true,
   },
-  {
-    name: "Team",
-    price: "$29",
-    period: "/month",
-    description: "Perfect for study groups & programs",
-    features: [
-      "Everything in Pro",
-      "Up to 50 team members",
-      "Instructor dashboard",
-      "Class management",
-      "Custom content creation",
-      "Performance reports",
-      "Dedicated support",
-    ],
-    cta: "Contact Sales",
-    current: false,
-    popular: false,
-  },
 ]
 
 export default function PricingPage() {
+  const { isPro, isLoading } = useSubscription()
+
   return (
     <div className="space-y-8 pt-12 lg:pt-0">
       {/* Header */}
@@ -74,58 +108,164 @@ export default function PricingPage() {
       </div>
 
       {/* Plans */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-        {plans.map((plan) => (
-          <GlassCard 
-            key={plan.name} 
-            className={cn(
-              "flex flex-col relative",
-              plan.popular && "ring-2 ring-primary"
-            )}
-            glow={plan.popular}
-          >
-            {plan.popular && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium flex items-center gap-1">
-                <Star className="w-3 h-3" />
-                Most Popular
-              </div>
-            )}
-            
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold text-foreground">{plan.name}</h2>
-              <div className="mt-2">
-                <span className="text-4xl font-bold text-foreground">{plan.price}</span>
-                <span className="text-muted-foreground">{plan.period}</span>
-              </div>
-              <p className="text-sm text-muted-foreground mt-2">{plan.description}</p>
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        {plans.map((plan) => {
+          const isCurrent = isPro ? plan.name === "MedRelay Pro" : plan.name === "Free"
+          const Icon = plan.icon
 
-            <ul className="space-y-3 flex-1 mb-6">
-              {plan.features.map((feature) => (
-                <li key={feature} className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-success shrink-0 mt-0.5" />
-                  <span className="text-sm text-foreground">{feature}</span>
-                </li>
-              ))}
-            </ul>
-
-            <Button 
+          return (
+            <GlassCard
+              key={plan.name}
               className={cn(
-                "w-full",
-                plan.current 
-                  ? "bg-secondary text-secondary-foreground" 
-                  : plan.popular 
+                "flex flex-col relative",
+                plan.popular && "ring-2 ring-primary"
+              )}
+              glow={plan.popular}
+            >
+              {plan.popular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium flex items-center gap-1">
+                  <Star className="w-3 h-3" />
+                  Most Popular
+                </div>
+              )}
+
+              <div className="mb-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className={cn(
+                    "w-10 h-10 rounded-lg flex items-center justify-center",
+                    plan.popular ? "bg-warning/20" : "bg-secondary"
+                  )}>
+                    <Icon className={cn(
+                      "w-5 h-5",
+                      plan.popular ? "text-warning" : "text-muted-foreground"
+                    )} />
+                  </div>
+                  <h2 className="text-xl font-semibold text-foreground">{plan.name}</h2>
+                </div>
+                <div className="mt-2">
+                  <span className="text-4xl font-bold text-foreground">{plan.price}</span>
+                  <span className="text-muted-foreground">{plan.period}</span>
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">{plan.description}</p>
+              </div>
+
+              <ul className="space-y-3 flex-1 mb-6">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-2">
+                    <CheckCircle className="w-5 h-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm text-foreground">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Button
+                className={cn(
+                  "w-full",
+                  isCurrent
+                    ? "bg-secondary text-secondary-foreground"
+                    : plan.popular
                     ? "bg-primary text-primary-foreground hover:bg-primary/90 glow-sm"
                     : "bg-secondary text-foreground hover:bg-secondary/80"
+                )}
+                disabled={isCurrent}
+              >
+                {plan.popular && !isCurrent && <Zap className="w-4 h-4 mr-2" />}
+                {isCurrent ? "Current Plan" : plan.cta}
+              </Button>
+
+              {plan.popular && !isCurrent && (
+                <p className="text-xs text-center text-muted-foreground mt-3">
+                  Cancel anytime. No questions asked.
+                </p>
               )}
-              disabled={plan.current}
-            >
-              {plan.name === "Team" && <Users className="w-4 h-4 mr-2" />}
-              {plan.popular && <Zap className="w-4 h-4 mr-2" />}
-              {plan.cta}
-            </Button>
-          </GlassCard>
-        ))}
+            </GlassCard>
+          )
+        })}
+      </div>
+
+      {/* Comparison Table */}
+      <GlassCard className="max-w-4xl mx-auto overflow-hidden">
+        <h2 className="text-xl font-semibold text-foreground mb-6">Feature Comparison</h2>
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Feature</th>
+                <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground w-32">Free</th>
+                <th className="text-center py-3 px-4 text-sm font-medium text-foreground w-32 bg-primary/10 rounded-t-lg">
+                  <div className="flex items-center justify-center gap-1">
+                    <Crown className="w-4 h-4 text-warning" />
+                    Pro
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {comparisonFeatures.map((category, categoryIndex) => (
+                <>
+                  <tr key={category.category}>
+                    <td
+                      colSpan={3}
+                      className={cn(
+                        "py-3 px-4 text-sm font-semibold text-foreground bg-secondary/50",
+                        categoryIndex > 0 && "border-t border-border"
+                      )}
+                    >
+                      {category.category}
+                    </td>
+                  </tr>
+                  {category.features.map((feature, index) => (
+                    <tr key={feature.name} className={cn(index < category.features.length - 1 && "border-b border-border/50")}>
+                      <td className="py-3 px-4 text-sm text-foreground">{feature.name}</td>
+                      <td className="text-center py-3 px-4">
+                        {typeof feature.free === "boolean" ? (
+                          feature.free ? (
+                            <CheckCircle className="w-5 h-5 text-success mx-auto" />
+                          ) : (
+                            <XCircle className="w-5 h-5 text-muted-foreground/50 mx-auto" />
+                          )
+                        ) : (
+                          <span className="text-sm text-muted-foreground">{feature.free}</span>
+                        )}
+                      </td>
+                      <td className="text-center py-3 px-4 bg-primary/5">
+                        {typeof feature.pro === "boolean" ? (
+                          feature.pro ? (
+                            <CheckCircle className="w-5 h-5 text-success mx-auto" />
+                          ) : (
+                            <XCircle className="w-5 h-5 text-muted-foreground/50 mx-auto" />
+                          )
+                        ) : (
+                          <span className="text-sm text-foreground font-medium">{feature.pro}</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </GlassCard>
+
+      {/* Trust Signals */}
+      <div className="max-w-4xl mx-auto">
+        <div className="grid sm:grid-cols-3 gap-4">
+          {[
+            { icon: Shield, title: "Secure Payment", description: "256-bit SSL encryption via Stripe" },
+            { icon: Clock, title: "Cancel Anytime", description: "No long-term commitments" },
+            { icon: Zap, title: "Instant Access", description: "Start learning immediately" },
+          ].map((item) => (
+            <div key={item.title} className="flex items-center gap-3 p-4 rounded-xl bg-secondary/30">
+              <item.icon className="w-5 h-5 text-primary shrink-0" />
+              <div>
+                <p className="font-medium text-foreground text-sm">{item.title}</p>
+                <p className="text-xs text-muted-foreground">{item.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* FAQ */}
@@ -151,9 +291,9 @@ export default function PricingPage() {
             </p>
           </div>
           <div>
-            <h3 className="font-medium text-foreground mb-1">Can I switch plans?</h3>
+            <h3 className="font-medium text-foreground mb-1">How do daily limits work?</h3>
             <p className="text-sm text-muted-foreground">
-              {"Yes, you can upgrade or downgrade your plan at any time. Changes take effect at the start of your next billing cycle."}
+              Free users get 20 flashcard reviews and 10 practice questions per day. Limits reset at midnight. Pro users have unlimited access.
             </p>
           </div>
         </div>

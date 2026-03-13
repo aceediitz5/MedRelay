@@ -128,23 +128,23 @@ export default function PreMedTrackPage() {
           <ECGLine className="w-full h-24" />
         </div>
         
-        <div className="max-w-5xl mx-auto text-center relative">
-          {/* Back Link */}
-          <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            <span>All Tracks</span>
-          </Link>
+        <div className="w-full max-w-6xl mx-auto text-center relative px-4 sm:px-8">
+          {/* Back Link & Badge Row */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
+            <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+              <ArrowLeft className="w-4 h-4" />
+              <span>All Tracks</span>
+            </Link>
 
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-medium mb-8 ml-4">
-            <Microscope className="w-4 h-4" />
-            <span>Pre-Med Track</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-medium">
+              <Microscope className="w-4 h-4" />
+              <span>Pre-Med Track</span>
+            </div>
           </div>
 
-          {/* Headline */}
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight">
-            Crush the
-            <br />
+          {/* Headline - Full width with text wrap */}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight tracking-tight text-balance mb-6">
+            Crush the{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400">
               MCAT
             </span>

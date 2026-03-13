@@ -129,29 +129,29 @@ export default function EMTTrackPage() {
           <ECGLine className="w-full h-24" />
         </div>
         
-        <div className="max-w-5xl mx-auto text-center relative">
-          {/* Back Link */}
-          <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            <span>All Tracks</span>
-          </Link>
+        <div className="w-full max-w-6xl mx-auto text-center relative px-4 sm:px-8">
+          {/* Back Link & Badge Row */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
+            <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+              <ArrowLeft className="w-4 h-4" />
+              <span>All Tracks</span>
+            </Link>
 
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-sm font-medium mb-8 ml-4">
-            <Ambulance className="w-4 h-4" />
-            <span>EMT & Paramedic Track</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-sm font-medium">
+              <Ambulance className="w-4 h-4" />
+              <span>EMT & Paramedic Track</span>
+            </div>
           </div>
 
-          {/* Headline */}
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight">
-            Master
-            <br />
+          {/* Headline - Full width with text wrap */}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight tracking-tight text-balance mb-6">
+            Master{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-red-400 to-orange-400">
               Pre-Hospital Care
             </span>
           </h1>
 
-          <p className="mt-6 text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg sm:text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed text-pretty">
             Ace your NREMT certification with comprehensive training in BLS/ALS protocols, 
             trauma assessment, and real-world field scenarios. Every call counts.
           </p>

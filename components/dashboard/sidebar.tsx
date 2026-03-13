@@ -16,6 +16,7 @@ import {
   LogOut,
   Menu,
   X,
+  Target,
 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -27,6 +28,7 @@ const navItems = [
   { href: "/dashboard/flashcards", label: "Flashcards", icon: BookOpen },
   { href: "/dashboard/questions", label: "Question Bank", icon: HelpCircle },
   { href: "/dashboard/simulations", label: "Case Simulations", icon: Stethoscope },
+  { href: "/dashboard/exam-prep", label: "Exam Prep", icon: Target },
   { href: "/dashboard/progress", label: "Progress", icon: TrendingUp },
 ]
 

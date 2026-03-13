@@ -6,6 +6,9 @@ import { GlassCard } from "@/components/ui/glass-card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { createClient } from "@/lib/supabase/client"
+import { useSubscription } from "@/lib/subscription/context"
+import { UpgradeModal } from "@/components/subscription/upgrade-modal"
+import { UsageIndicator } from "@/components/subscription/locked-content"
 import {
   ArrowLeft,
   RotateCcw,
@@ -17,6 +20,8 @@ import {
   Meh,
   Sparkles,
   BookOpen,
+  Lock,
+  Crown,
 } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
@@ -58,10 +63,12 @@ const confidenceButtons = [
 
 export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
   const router = useRouter()
+  const { isPro, canUseFlashcards, dailyUsage, flashcardsRemaining, refreshUsage } = useSubscription()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
   const [reviewedCards, setReviewedCards] = useState<Set<string>>(new Set())
   const [sessionComplete, setSessionComplete] = useState(false)
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false)
 
   const currentCard = cards[currentIndex]
   const progress = cards.length > 0 ? Math.round((reviewedCards.size / cards.length) * 100) : 0
@@ -72,6 +79,12 @@ export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
 
   const handleConfidence = useCallback(async (level: number) => {
     if (!currentCard) return
+
+    // Check if user has reached their daily limit
+    if (!canUseFlashcards) {
+      setUpgradeModalOpen(true)
+      return
+    }
 
     const supabase = createClient()
     
@@ -124,12 +137,15 @@ export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
     setReviewedCards(prev => new Set([...prev, currentCard.id]))
     setIsFlipped(false)
 
+    // Refresh usage to update the counter
+    await refreshUsage()
+
     if (currentIndex < cards.length - 1) {
       setCurrentIndex(currentIndex + 1)
     } else {
       setSessionComplete(true)
     }
-  }, [currentCard, currentIndex, cards.length, userId])
+  }, [currentCard, currentIndex, cards.length, userId, canUseFlashcards, refreshUsage])
 
   const handlePrevious = useCallback(() => {
     if (currentIndex > 0) {
@@ -200,6 +216,7 @@ export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
   }
 
   return (
+    <>
     <div className="space-y-6 pt-12 lg:pt-0 max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -211,6 +228,40 @@ export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
           {currentIndex + 1} / {cards.length}
         </span>
       </div>
+
+      {/* Daily Usage Indicator for Free Users */}
+      {!isPro && (
+        <div className="p-4 rounded-lg bg-secondary/50 border border-border">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-foreground flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-primary" />
+              Daily Flashcard Limit
+            </span>
+            {!canUseFlashcards && (
+              <span className="text-xs px-2 py-1 rounded-full bg-warning/20 text-warning flex items-center gap-1">
+                <Lock className="w-3 h-3" />
+                Limit Reached
+              </span>
+            )}
+          </div>
+          <UsageIndicator
+            used={dailyUsage.flashcardsReviewed}
+            limit={20}
+            label="Cards reviewed today"
+            isPro={isPro}
+          />
+          {!canUseFlashcards && (
+            <Button
+              onClick={() => setUpgradeModalOpen(true)}
+              size="sm"
+              className="mt-3 w-full bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <Crown className="w-4 h-4 mr-2" />
+              Upgrade for Unlimited
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Deck title and progress */}
       <div className="space-y-3">
@@ -300,7 +351,15 @@ export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
             ))}
           </div>
         </div>
-      )}
+)}
+      </div>
     </div>
+    
+    <UpgradeModal
+      open={upgradeModalOpen}
+      onOpenChange={setUpgradeModalOpen}
+      feature="flashcards"
+    />
+    </>
   )
 }
