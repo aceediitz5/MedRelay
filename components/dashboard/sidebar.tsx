@@ -17,6 +17,7 @@ import {
   Menu,
   X,
   Target,
+  Flame,
 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -25,6 +26,7 @@ import { useRouter } from "next/navigation"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard/study", label: "Daily Study", icon: Flame },
   { href: "/dashboard/flashcards", label: "Flashcards", icon: BookOpen },
   { href: "/dashboard/questions", label: "Question Bank", icon: HelpCircle },
   { href: "/dashboard/simulations", label: "Case Simulations", icon: Stethoscope },

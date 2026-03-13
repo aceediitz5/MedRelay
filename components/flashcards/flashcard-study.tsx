@@ -22,6 +22,9 @@ import {
   BookOpen,
   Lock,
   Crown,
+  Zap,
+  Flame,
+  Star,
 } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
@@ -61,6 +64,43 @@ const confidenceButtons = [
   { level: 4, label: "Easy", icon: Sparkles, color: "text-success hover:bg-success/20" },
 ]
 
+// SM-2 Spaced Repetition Algorithm
+function calculateSM2(quality: number, easeFactor: number, interval: number, repetitions: number) {
+  // quality: 0-5 (we map our 1-4 to 0-5)
+  const q = Math.max(0, Math.min(5, (quality - 1) * 1.67))
+  
+  let newEF = easeFactor + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02))
+  newEF = Math.max(1.3, newEF) // minimum ease factor
+  
+  let newInterval: number
+  let newReps: number
+  
+  if (q < 3) {
+    // Failed - reset
+    newInterval = 1
+    newReps = 0
+  } else {
+    newReps = repetitions + 1
+    if (newReps === 1) {
+      newInterval = 1
+    } else if (newReps === 2) {
+      newInterval = 6
+    } else {
+      newInterval = Math.round(interval * newEF)
+    }
+  }
+  
+  return { easeFactor: newEF, interval: newInterval, repetitions: newReps }
+}
+
+// XP rewards based on confidence
+const XP_REWARDS = {
+  1: 5,   // Again - still learning
+  2: 10,  // Hard - some effort
+  3: 15,  // Good - solid recall
+  4: 20,  // Easy - perfect recall
+}
+
 export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
   const router = useRouter()
   const { isPro, canUseFlashcards, dailyUsage, flashcardsRemaining, refreshUsage } = useSubscription()
@@ -69,6 +109,10 @@ export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
   const [reviewedCards, setReviewedCards] = useState<Set<string>>(new Set())
   const [sessionComplete, setSessionComplete] = useState(false)
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false)
+  const [sessionXp, setSessionXp] = useState(0)
+  const [streak, setStreak] = useState(0)
+  const [showXpPopup, setShowXpPopup] = useState(false)
+  const [lastXpGained, setLastXpGained] = useState(0)
 
   const currentCard = cards[currentIndex]
   const progress = cards.length > 0 ? Math.round((reviewedCards.size / cards.length) * 100) : 0
@@ -87,13 +131,25 @@ export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
     }
 
     const supabase = createClient()
-    
-    // Calculate next review date based on confidence
     const now = new Date()
-    const intervals = [0, 1, 3, 7, 14] // days
-    const nextReview = new Date(now.getTime() + intervals[level] * 24 * 60 * 60 * 1000)
+    
+    // Get current progress for SM-2 calculation
+    const currentEF = (currentCard.progress as any)?.ease_factor || 2.5
+    const currentInterval = (currentCard.progress as any)?.interval_days || 0
+    const currentReps = (currentCard.progress as any)?.repetitions || 0
+    
+    // Calculate new SM-2 values
+    const { easeFactor, interval, repetitions } = calculateSM2(level, currentEF, currentInterval, currentReps)
+    const nextReview = new Date(now.getTime() + interval * 24 * 60 * 60 * 1000)
 
-    // Upsert progress
+    // Calculate XP earned
+    const xpEarned = XP_REWARDS[level as keyof typeof XP_REWARDS] || 10
+    setLastXpGained(xpEarned)
+    setSessionXp(prev => prev + xpEarned)
+    setShowXpPopup(true)
+    setTimeout(() => setShowXpPopup(false), 1500)
+
+    // Upsert progress with SM-2 fields
     await supabase
       .from("user_flashcard_progress")
       .upsert({
@@ -103,12 +159,15 @@ export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
         times_reviewed: (currentCard.progress?.times_reviewed || 0) + 1,
         last_reviewed: now.toISOString(),
         next_review: nextReview.toISOString(),
+        ease_factor: easeFactor,
+        interval_days: interval,
+        repetitions: repetitions,
       })
 
     // Update daily study log
     const today = now.toISOString().split("T")[0]
     const { data: existingLog } = await supabase
-      .from("daily_study_log")
+      .from("daily_study_logs")
       .select("*")
       .eq("user_id", userId)
       .eq("study_date", today)
@@ -116,22 +175,27 @@ export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
 
     if (existingLog) {
       await supabase
-        .from("daily_study_log")
+        .from("daily_study_logs")
         .update({
-          cards_reviewed: existingLog.cards_reviewed + 1,
-          minutes_studied: existingLog.minutes_studied + 1,
+          flashcards_reviewed: (existingLog.flashcards_reviewed || 0) + 1,
+          xp_earned: (existingLog.xp_earned || 0) + xpEarned,
+          minutes_studied: (existingLog.minutes_studied || 0) + 1,
         })
         .eq("id", existingLog.id)
     } else {
       await supabase
-        .from("daily_study_log")
+        .from("daily_study_logs")
         .insert({
           user_id: userId,
           study_date: today,
-          cards_reviewed: 1,
+          flashcards_reviewed: 1,
+          xp_earned: xpEarned,
           minutes_studied: 1,
         })
     }
+
+    // Update user's total XP
+    await supabase.rpc("add_xp", { user_id_param: userId, xp_amount: xpEarned })
 
     // Mark as reviewed and move to next card
     setReviewedCards(prev => new Set([...prev, currentCard.id]))
@@ -186,12 +250,12 @@ export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
 
   if (sessionComplete) {
     return (
-      <div className="space-y-8 pt-12 lg:pt-0">
+      <div className="space-y-8 pt-12 lg:pt-0 max-w-xl mx-auto">
         <Link href="/dashboard/flashcards" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Back to Decks
         </Link>
-        <GlassCard className="text-center py-12 max-w-xl mx-auto" glow>
+        <GlassCard className="text-center py-12" glow>
           <div className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center mx-auto mb-6 animate-pulse-glow">
             <Sparkles className="w-8 h-8 text-success" />
           </div>
@@ -199,14 +263,27 @@ export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
           <p className="text-muted-foreground mb-6">
             {"You've reviewed all"} {cards.length} cards in this deck. Great work!
           </p>
+          
+          {/* XP Summary */}
+          <div className="flex items-center justify-center gap-6 mb-8">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+              <Zap className="w-5 h-5 text-yellow-400" />
+              <span className="font-bold text-yellow-400">+{sessionXp} XP</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 border border-primary/20">
+              <Star className="w-5 h-5 text-primary" />
+              <span className="font-bold text-primary">{cards.length} Cards</span>
+            </div>
+          </div>
+          
           <div className="flex items-center justify-center gap-4">
             <Button variant="outline" onClick={handleRestart}>
               <RotateCcw className="w-4 h-4 mr-2" />
               Study Again
             </Button>
-            <Link href="/dashboard/flashcards">
+            <Link href="/dashboard/study">
               <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                Back to Decks
+                Daily Study
               </Button>
             </Link>
           </div>
@@ -270,8 +347,26 @@ export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
           <h1 className="text-2xl font-bold text-foreground">{deck.title}</h1>
         </div>
         <Progress value={progress} className="h-2" />
-        <p className="text-sm text-muted-foreground">{reviewedCards.size} of {cards.length} reviewed this session</p>
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">{reviewedCards.size} of {cards.length} reviewed this session</p>
+          {sessionXp > 0 && (
+            <div className="flex items-center gap-2 text-sm">
+              <Zap className="w-4 h-4 text-yellow-400" />
+              <span className="text-yellow-400 font-medium">+{sessionXp} XP this session</span>
+            </div>
+          )}
+        </div>
       </div>
+      
+      {/* XP Popup Animation */}
+      {showXpPopup && (
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none">
+          <div className="animate-bounce flex items-center gap-2 px-6 py-3 rounded-full bg-yellow-500/20 border border-yellow-500/30 backdrop-blur-sm">
+            <Zap className="w-6 h-6 text-yellow-400" />
+            <span className="text-2xl font-bold text-yellow-400">+{lastXpGained} XP</span>
+          </div>
+        </div>
+      )}
 
       {/* Flashcard */}
       <div 

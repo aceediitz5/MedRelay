@@ -11,16 +11,30 @@ import {
   Calendar,
   Clock,
   Award,
+  Zap,
+  Star,
+  Trophy,
+  Crown,
+  Shield,
+  Rocket,
+  Medal,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 async function getProgressData(userId: string) {
   const supabase = await createClient()
 
+  // Get user profile with XP
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("total_xp, level, current_streak, longest_streak")
+    .eq("id", userId)
+    .single()
+
   // Get daily study logs for the last 30 days
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
   const { data: studyLogs } = await supabase
-    .from("daily_study_log")
+    .from("daily_study_logs")
     .select("*")
     .eq("user_id", userId)
     .gte("study_date", thirtyDaysAgo)
@@ -29,7 +43,7 @@ async function getProgressData(userId: string) {
   // Get flashcard progress
   const { data: flashcardProgress } = await supabase
     .from("user_flashcard_progress")
-    .select("confidence_level, last_reviewed")
+    .select("confidence_level, last_reviewed, ease_factor, interval_days")
     .eq("user_id", userId)
 
   // Get question progress
@@ -44,18 +58,24 @@ async function getProgressData(userId: string) {
     .select("status, score, completed_at")
     .eq("user_id", userId)
 
-  // Get topics for breakdown
-  const { data: topics } = await supabase
-    .from("topics")
-    .select(`
-      id, name, icon,
-      flashcard_decks(id, flashcards(id)),
-      questions(id)
-    `)
+  // Get user achievements
+  const { data: userAchievements } = await supabase
+    .from("user_achievements")
+    .select("achievement:achievements(*), unlocked_at")
+    .eq("user_id", userId)
 
-  // Calculate streak
-  let streak = 0
-  if (studyLogs && studyLogs.length > 0) {
+  // Get all achievements
+  const { data: allAchievements } = await supabase
+    .from("achievements")
+    .select("*")
+    .order("xp_reward", { ascending: true })
+
+  // Calculate streak from profile or logs
+  let streak = profile?.current_streak || 0
+  let longestStreak = profile?.longest_streak || 0
+  
+  // Fallback streak calculation if not in profile
+  if (!streak && studyLogs && studyLogs.length > 0) {
     const today = new Date().toISOString().split("T")[0]
     const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0]
     
@@ -72,11 +92,15 @@ async function getProgressData(userId: string) {
         }
       }
     }
+    longestStreak = Math.max(streak, longestStreak)
   }
 
   // Calculate totals
+  const totalXp = profile?.total_xp || 0
+  const level = profile?.level || 1
   const totalCards = flashcardProgress?.length || 0
   const masteredCards = flashcardProgress?.filter(p => p.confidence_level >= 4).length || 0
+  const learningCards = flashcardProgress?.filter(p => p.confidence_level >= 2 && p.confidence_level < 4).length || 0
   const totalQuestions = questionProgress?.length || 0
   const correctQuestions = questionProgress?.filter(p => p.is_correct).length || 0
   const accuracy = totalQuestions > 0 ? Math.round((correctQuestions / totalQuestions) * 100) : 0
@@ -85,42 +109,57 @@ async function getProgressData(userId: string) {
     ? Math.round(simProgress!.filter(s => s.status === "completed").reduce((acc, s) => acc + (s.score || 0), 0) / simsCompleted) 
     : 0
   const totalMinutes = studyLogs?.reduce((acc, log) => acc + (log.minutes_studied || 0), 0) || 0
+  const totalXpFromLogs = studyLogs?.reduce((acc, log) => acc + (log.xp_earned || 0), 0) || 0
 
   // Build activity heatmap (last 30 days)
-  const activityMap = new Map(studyLogs?.map(log => [log.study_date, log.minutes_studied || 0]) || [])
+  const activityMap = new Map(studyLogs?.map(log => [log.study_date, {
+    minutes: log.minutes_studied || 0,
+    xp: log.xp_earned || 0,
+    flashcards: log.flashcards_reviewed || 0,
+    questions: log.questions_answered || 0,
+  }]) || [])
+  
   const activityDays = []
   for (let i = 29; i >= 0; i--) {
     const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+    const dayData = activityMap.get(date)
     activityDays.push({
       date,
-      minutes: activityMap.get(date) || 0,
+      minutes: dayData?.minutes || 0,
+      xp: dayData?.xp || 0,
+      flashcards: dayData?.flashcards || 0,
+      questions: dayData?.questions || 0,
     })
   }
 
-  // Calculate topic performance
-  const topicPerformance = topics?.map(topic => {
-    const topicFlashcards = (topic.flashcard_decks as { flashcards: { id: string }[] }[])?.flatMap(d => d.flashcards) || []
-    const topicQuestionIds = (topic.questions as { id: string }[])?.map(q => q.id) || []
+  // Weekly XP data for chart
+  const weeklyXp = []
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000)
+    const dateStr = date.toISOString().split("T")[0]
+    const dayData = activityMap.get(dateStr)
+    weeklyXp.push({
+      day: date.toLocaleDateString("en-US", { weekday: "short" }),
+      xp: dayData?.xp || 0,
+    })
+  }
 
-    const flashcardsStudied = flashcardProgress?.filter(p => 
-      topicFlashcards.some(f => f.id === p.confidence_level.toString()) // This needs to be fixed based on actual schema
-    ).length || 0
-
-    const questionsAnswered = questionProgress?.filter(p =>
-      topicQuestionIds.includes(p.is_correct.toString()) // This needs to be fixed based on actual schema
-    ).length || 0
-
-    return {
-      topic,
-      totalContent: topicFlashcards.length + topicQuestionIds.length,
-      progress: 0, // Placeholder
-    }
-  }).filter(t => t.totalContent > 0) || []
+  // Map achievements
+  const unlockedIds = new Set(userAchievements?.map(ua => (ua.achievement as any)?.id))
+  const achievements = allAchievements?.map(a => ({
+    ...a,
+    unlocked: unlockedIds.has(a.id),
+    unlockedAt: userAchievements?.find(ua => (ua.achievement as any)?.id === a.id)?.unlocked_at,
+  })) || []
 
   return {
+    totalXp,
+    level,
     streak,
+    longestStreak,
     totalCards,
     masteredCards,
+    learningCards,
     totalQuestions,
     correctQuestions,
     accuracy,
@@ -128,7 +167,8 @@ async function getProgressData(userId: string) {
     avgSimScore,
     totalMinutes,
     activityDays,
-    topicPerformance,
+    weeklyXp,
+    achievements,
     studyLogs: studyLogs || [],
   }
 }
@@ -140,27 +180,77 @@ export default async function ProgressPage() {
   if (!user) return null
 
   const data = await getProgressData(user.id)
+  
+  // XP for next level calculation
+  const xpForCurrentLevel = (data.level - 1) * 500
+  const xpForNextLevel = data.level * 500
+  const xpProgress = ((data.totalXp - xpForCurrentLevel) / 500) * 100
+  const xpToNextLevel = xpForNextLevel - data.totalXp
 
   return (
     <div className="space-y-8 pt-12 lg:pt-0">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Your Progress</h1>
-        <p className="text-muted-foreground mt-1">
-          Track your learning journey and identify areas for improvement
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Your Progress</h1>
+          <p className="text-muted-foreground mt-1">
+            Track your learning journey and level up your knowledge
+          </p>
+        </div>
+        
+        {/* Level Badge */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
+            <Star className="w-5 h-5 text-primary" />
+            <span className="font-bold text-primary">Level {data.level}</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-500/10 border border-yellow-500/20">
+            <Zap className="w-5 h-5 text-yellow-400" />
+            <span className="font-bold text-yellow-400">{data.totalXp.toLocaleString()} XP</span>
+          </div>
+        </div>
       </div>
 
+      {/* XP Progress to Next Level */}
+      <GlassCard className="p-6" glow>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-yellow-400" />
+            <span className="font-semibold text-foreground">Progress to Level {data.level + 1}</span>
+          </div>
+          <span className="text-sm text-muted-foreground">
+            {xpToNextLevel} XP to go
+          </span>
+        </div>
+        <Progress value={xpProgress} className="h-4" />
+        <div className="flex items-center justify-between mt-2 text-sm text-muted-foreground">
+          <span>Level {data.level}</span>
+          <span>{Math.round(xpProgress)}%</span>
+          <span>Level {data.level + 1}</span>
+        </div>
+      </GlassCard>
+
       {/* Key Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <GlassCard>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-warning/20 flex items-center justify-center">
-              <Flame className="w-5 h-5 text-warning" />
+            <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center">
+              <Flame className="w-5 h-5 text-orange-400" />
             </div>
             <div>
               <p className="text-2xl font-bold text-foreground">{data.streak}</p>
               <p className="text-xs text-muted-foreground">Day Streak</p>
+            </div>
+          </div>
+        </GlassCard>
+        <GlassCard>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-pink-500/20 flex items-center justify-center">
+              <Rocket className="w-5 h-5 text-pink-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{data.longestStreak}</p>
+              <p className="text-xs text-muted-foreground">Best Streak</p>
             </div>
           </div>
         </GlassCard>
@@ -171,7 +261,7 @@ export default async function ProgressPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-foreground">{data.masteredCards}</p>
-              <p className="text-xs text-muted-foreground">Cards Mastered</p>
+              <p className="text-xs text-muted-foreground">Mastered</p>
             </div>
           </div>
         </GlassCard>
@@ -182,7 +272,7 @@ export default async function ProgressPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-foreground">{data.accuracy}%</p>
-              <p className="text-xs text-muted-foreground">Question Accuracy</p>
+              <p className="text-xs text-muted-foreground">Accuracy</p>
             </div>
           </div>
         </GlassCard>
@@ -193,11 +283,40 @@ export default async function ProgressPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-foreground">{Math.round(data.totalMinutes / 60)}h</p>
-              <p className="text-xs text-muted-foreground">Total Study Time</p>
+              <p className="text-xs text-muted-foreground">Study Time</p>
             </div>
           </div>
         </GlassCard>
       </div>
+
+      {/* Weekly XP Chart */}
+      <GlassCard>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-primary" />
+            Weekly XP
+          </h2>
+          <span className="text-sm text-muted-foreground">Last 7 days</span>
+        </div>
+        <div className="flex items-end gap-2 h-32">
+          {data.weeklyXp.map((day, i) => {
+            const maxXp = Math.max(...data.weeklyXp.map(d => d.xp), 100)
+            const height = day.xp > 0 ? Math.max(10, (day.xp / maxXp) * 100) : 4
+            return (
+              <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                <div 
+                  className={cn(
+                    "w-full rounded-t-md transition-all",
+                    day.xp > 0 ? "bg-gradient-to-t from-primary/50 to-primary" : "bg-secondary"
+                  )}
+                  style={{ height: `${height}%` }}
+                />
+                <span className="text-xs text-muted-foreground">{day.day}</span>
+              </div>
+            )
+          })}
+        </div>
+      </GlassCard>
 
       {/* Activity Heatmap */}
       <GlassCard>
@@ -212,14 +331,14 @@ export default async function ProgressPage() {
             <div
               key={day.date}
               className={cn(
-                "w-4 h-4 rounded-sm transition-colors",
+                "w-4 h-4 rounded-sm transition-colors cursor-pointer hover:ring-2 hover:ring-primary/50",
                 day.minutes === 0 && "bg-secondary",
                 day.minutes > 0 && day.minutes < 15 && "bg-primary/30",
                 day.minutes >= 15 && day.minutes < 30 && "bg-primary/50",
                 day.minutes >= 30 && day.minutes < 60 && "bg-primary/70",
                 day.minutes >= 60 && "bg-primary"
               )}
-              title={`${day.date}: ${day.minutes} minutes`}
+              title={`${day.date}: ${day.minutes}min, ${day.xp}XP, ${day.flashcards} cards, ${day.questions} questions`}
             />
           ))}
         </div>
@@ -247,17 +366,26 @@ export default async function ProgressPage() {
           <div className="space-y-4">
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-muted-foreground">Cards Studied</span>
+                <span className="text-muted-foreground">Total Cards Studied</span>
                 <span className="text-foreground">{data.totalCards}</span>
               </div>
             </div>
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-muted-foreground">Mastered (Level 4+)</span>
+                <span className="text-muted-foreground">Mastered</span>
                 <span className="text-success">{data.masteredCards}</span>
               </div>
-              <Progress value={data.totalCards > 0 ? (data.masteredCards / data.totalCards) * 100 : 0} className="h-2" />
             </div>
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-muted-foreground">Learning</span>
+                <span className="text-warning">{data.learningCards}</span>
+              </div>
+            </div>
+            <Progress value={data.totalCards > 0 ? (data.masteredCards / data.totalCards) * 100 : 0} className="h-2" />
+            <p className="text-xs text-muted-foreground">
+              {data.totalCards > 0 ? Math.round((data.masteredCards / data.totalCards) * 100) : 0}% mastery rate
+            </p>
           </div>
         </GlassCard>
 
@@ -278,16 +406,22 @@ export default async function ProgressPage() {
             </div>
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-muted-foreground">Correct Answers</span>
+                <span className="text-muted-foreground">Correct</span>
                 <span className="text-success">{data.correctQuestions}</span>
               </div>
-              <Progress value={data.accuracy} className="h-2" />
             </div>
-            <p className="text-sm text-muted-foreground">
-              Accuracy: <span className={cn(
-                "font-medium",
-                data.accuracy >= 70 ? "text-success" : data.accuracy >= 50 ? "text-warning" : "text-destructive"
-              )}>{data.accuracy}%</span>
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-muted-foreground">Incorrect</span>
+                <span className="text-destructive">{data.totalQuestions - data.correctQuestions}</span>
+              </div>
+            </div>
+            <Progress value={data.accuracy} className="h-2" />
+            <p className={cn(
+              "text-xs",
+              data.accuracy >= 70 ? "text-success" : data.accuracy >= 50 ? "text-warning" : "text-destructive"
+            )}>
+              {data.accuracy}% accuracy
             </p>
           </div>
         </GlassCard>
@@ -315,8 +449,11 @@ export default async function ProgressPage() {
                   data.avgSimScore >= 70 ? "text-success" : data.avgSimScore >= 50 ? "text-warning" : "text-destructive"
                 )}>{data.avgSimScore}%</span>
               </div>
-              <Progress value={data.avgSimScore} className="h-2" />
             </div>
+            <Progress value={data.avgSimScore} className="h-2" />
+            <p className="text-xs text-muted-foreground">
+              Keep practicing to improve your clinical skills
+            </p>
           </div>
         </GlassCard>
       </div>
@@ -324,59 +461,112 @@ export default async function ProgressPage() {
       {/* Achievements */}
       <GlassCard>
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-lg bg-warning/20 flex items-center justify-center">
-            <Award className="w-5 h-5 text-warning" />
+          <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+            <Award className="w-5 h-5 text-yellow-400" />
           </div>
-          <h2 className="text-lg font-semibold text-foreground">Achievements</h2>
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">Achievements</h2>
+            <p className="text-sm text-muted-foreground">
+              {data.achievements.filter(a => a.unlocked).length} of {data.achievements.length} unlocked
+            </p>
+          </div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <AchievementBadge 
-            title="First Steps" 
-            description="Complete your first study session"
-            unlocked={data.studyLogs.length > 0}
-          />
-          <AchievementBadge 
-            title="Week Warrior" 
-            description="7 day study streak"
-            unlocked={data.streak >= 7}
-          />
-          <AchievementBadge 
-            title="Card Master" 
-            description="Master 50 flashcards"
-            unlocked={data.masteredCards >= 50}
-          />
-          <AchievementBadge 
-            title="Sharp Mind" 
-            description="80% question accuracy"
-            unlocked={data.accuracy >= 80}
-          />
+          {data.achievements.slice(0, 8).map((achievement) => (
+            <AchievementBadge 
+              key={achievement.id}
+              title={achievement.name} 
+              description={achievement.description}
+              xpReward={achievement.xp_reward}
+              icon={achievement.icon}
+              unlocked={achievement.unlocked}
+            />
+          ))}
+          {data.achievements.length === 0 && (
+            <>
+              <AchievementBadge 
+                title="First Steps" 
+                description="Complete your first study session"
+                xpReward={50}
+                icon="rocket"
+                unlocked={data.studyLogs.length > 0}
+              />
+              <AchievementBadge 
+                title="Week Warrior" 
+                description="7 day study streak"
+                xpReward={100}
+                icon="flame"
+                unlocked={data.streak >= 7}
+              />
+              <AchievementBadge 
+                title="Card Master" 
+                description="Master 50 flashcards"
+                xpReward={150}
+                icon="book"
+                unlocked={data.masteredCards >= 50}
+              />
+              <AchievementBadge 
+                title="Sharp Mind" 
+                description="80% question accuracy"
+                xpReward={200}
+                icon="target"
+                unlocked={data.accuracy >= 80}
+              />
+            </>
+          )}
         </div>
       </GlassCard>
     </div>
   )
 }
 
-function AchievementBadge({ title, description, unlocked }: { 
+function AchievementBadge({ 
+  title, 
+  description, 
+  xpReward,
+  icon,
+  unlocked 
+}: { 
   title: string
   description: string
+  xpReward?: number
+  icon?: string
   unlocked: boolean 
 }) {
+  const IconComponent = icon === "flame" ? Flame 
+    : icon === "rocket" ? Rocket 
+    : icon === "book" ? BookOpen 
+    : icon === "target" ? Target
+    : icon === "shield" ? Shield
+    : icon === "crown" ? Crown
+    : icon === "medal" ? Medal
+    : Award
+
   return (
     <div className={cn(
       "p-4 rounded-lg border text-center transition-all",
       unlocked 
-        ? "bg-warning/10 border-warning/30" 
+        ? "bg-yellow-500/10 border-yellow-500/30" 
         : "bg-secondary/30 border-transparent opacity-50"
     )}>
-      <Award className={cn(
+      <IconComponent className={cn(
         "w-8 h-8 mx-auto mb-2",
-        unlocked ? "text-warning" : "text-muted-foreground"
+        unlocked ? "text-yellow-400" : "text-muted-foreground"
       )} />
       <p className={cn(
         "font-medium text-sm",
         unlocked ? "text-foreground" : "text-muted-foreground"
       )}>{title}</p>
       <p className="text-xs text-muted-foreground mt-1">{description}</p>
+      {xpReward && (
+        <div className={cn(
+          "flex items-center justify-center gap-1 mt-2 text-xs",
+          unlocked ? "text-yellow-400" : "text-muted-foreground"
+        )}>
+          <Zap className="w-3 h-3" />
+          <span>+{xpReward} XP</span>
+        </div>
+      )}
     </div>
   )
 }
