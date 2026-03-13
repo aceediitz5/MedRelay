@@ -122,8 +122,7 @@ export default async function FlashcardsPage() {
       {/* Decks by Topic */}
       {decksByTopic.map(({ topic, decks: topicDecks }) => (
         <div key={topic.id} className="space-y-4">
-          <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
-            <span className="text-2xl">{topic.icon || "📚"}</span>
+          <h2 className="text-xl font-semibold text-foreground">
             {topic.name}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
