@@ -11,8 +11,6 @@ import {
   Hospital,
   Microscope,
   GraduationCap,
-  Lock,
-  Crown,
   Clock,
   BookOpen,
   HelpCircle,
@@ -20,16 +18,16 @@ import {
   FileText,
   ChevronRight,
   Star,
-  Zap,
   Target,
+  CheckCircle,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-// Exam prep programs
+// Exam prep programs - independently purchasable
 const examPrograms = [
   {
     id: "nremt",
-    name: "NREMT Exam Prep",
+    name: "NREMT Certification Prep",
     description: "Complete preparation for the National Registry EMT examination",
     icon: Ambulance,
     color: "from-orange-500/20 to-red-500/20",
@@ -37,6 +35,7 @@ const examPrograms = [
     iconColor: "text-orange-400",
     difficulty: "Intermediate",
     duration: "8-12 weeks",
+    price: 99,
     topics: ["Patient Assessment", "Airway Management", "Cardiology", "Trauma", "EMS Operations", "Pharmacology"],
     phases: [
       { name: "Core Flashcards", items: 450, completed: 0 },
@@ -55,6 +54,7 @@ const examPrograms = [
     iconColor: "text-red-400",
     difficulty: "Advanced",
     duration: "12-16 weeks",
+    price: 129,
     topics: ["Advanced Airway", "Cardiac Arrest", "Pharmacology", "Trauma Management", "Special Populations"],
     phases: [
       { name: "Core Flashcards", items: 650, completed: 0 },
@@ -73,6 +73,7 @@ const examPrograms = [
     iconColor: "text-pink-400",
     difficulty: "Intermediate",
     duration: "10-14 weeks",
+    price: 149,
     topics: ["Pharmacology", "Med-Surg", "Pediatrics", "Mental Health", "Maternal-Newborn", "Critical Care"],
     phases: [
       { name: "Core Flashcards", items: 800, completed: 0 },
@@ -91,6 +92,7 @@ const examPrograms = [
     iconColor: "text-cyan-400",
     difficulty: "Advanced",
     duration: "16-20 weeks",
+    price: 199,
     topics: ["Biochemistry", "Biology", "Chemistry", "Physics", "Psychology", "Sociology"],
     phases: [
       { name: "Core Flashcards", items: 950, completed: 0 },
@@ -101,7 +103,7 @@ const examPrograms = [
   },
   {
     id: "usmle",
-    name: "USMLE Step 1 Foundations",
+    name: "USMLE Step 1 Prep",
     description: "Comprehensive prep for the USMLE Step 1 examination",
     icon: GraduationCap,
     color: "from-purple-500/20 to-indigo-500/20",
@@ -109,6 +111,7 @@ const examPrograms = [
     iconColor: "text-purple-400",
     difficulty: "Expert",
     duration: "20-24 weeks",
+    price: 249,
     topics: ["Anatomy", "Pathology", "Pharmacology", "Physiology", "Biochemistry", "Microbiology"],
     phases: [
       { name: "Core Flashcards", items: 1100, completed: 0 },
@@ -125,33 +128,27 @@ const difficultyColors = {
   Expert: "text-destructive bg-destructive/20",
 }
 
-function ExamProgramCard({ program, isPro }: { program: typeof examPrograms[0]; isPro: boolean }) {
-  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false)
+function ExamProgramCard({ program, isPurchased }: { program: typeof examPrograms[0]; isPurchased: boolean }) {
+  const [purchaseModalOpen, setPurchaseModalOpen] = useState(false)
   const Icon = program.icon
   const totalItems = program.phases.reduce((acc, phase) => acc + phase.items, 0)
   const completedItems = program.phases.reduce((acc, phase) => acc + phase.completed, 0)
   const progressPercent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0
 
   const handleStartPrep = () => {
-    if (!isPro) {
-      setUpgradeModalOpen(true)
+    if (!isPurchased) {
+      setPurchaseModalOpen(true)
     }
-    // TODO: Navigate to program detail page when Pro
+    // TODO: Navigate to program detail page when purchased
   }
 
   return (
     <>
-      <GlassCard className={cn(
-        "relative overflow-hidden transition-all duration-300",
-        !isPro && "opacity-80"
-      )}>
-        {/* Locked badge for free users */}
-        {!isPro && (
-          <div className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-warning/20 border border-warning/30 text-warning text-xs font-medium z-10">
-            <Lock className="w-3 h-3" />
-            <span>Pro</span>
-          </div>
-        )}
+      <GlassCard className="relative overflow-hidden transition-all duration-300 hover:border-primary/30 card-hover">
+        {/* Price badge */}
+        <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/20 border border-primary/30 text-primary text-sm font-bold z-10">
+          ${program.price}
+        </div>
 
         <div className="flex flex-col h-full">
           {/* Header */}
@@ -179,6 +176,9 @@ function ExamProgramCard({ program, isPro }: { program: typeof examPrograms[0]; 
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="w-3.5 h-3.5" />
               {program.duration}
+            </span>
+            <span className="flex items-center gap-1 text-xs text-primary font-medium">
+              Lifetime Access
             </span>
           </div>
 
@@ -211,7 +211,7 @@ function ExamProgramCard({ program, isPro }: { program: typeof examPrograms[0]; 
           </div>
 
           {/* Progress */}
-          {isPro && (
+          {isPurchased && (
             <div className="mb-4">
               <div className="flex justify-between text-xs mb-1.5">
                 <span className="text-muted-foreground">Progress</span>
@@ -226,20 +226,19 @@ function ExamProgramCard({ program, isPro }: { program: typeof examPrograms[0]; 
             <Button
               onClick={handleStartPrep}
               className={cn(
-                "w-full",
-                isPro
+                "w-full h-11 btn-hover-lift",
+                isPurchased
                   ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                  : "bg-secondary text-foreground hover:bg-secondary/80"
+                  : "bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90"
               )}
             >
-              {isPro ? (
+              {isPurchased ? (
                 <>
-                  Start Prep <ChevronRight className="w-4 h-4 ml-1" />
+                  Continue Prep <ChevronRight className="w-4 h-4 ml-1" />
                 </>
               ) : (
                 <>
-                  <Lock className="w-4 h-4 mr-2" />
-                  Unlock with Pro
+                  Purchase for ${program.price} <ChevronRight className="w-4 h-4 ml-1" />
                 </>
               )}
             </Button>
@@ -247,9 +246,10 @@ function ExamProgramCard({ program, isPro }: { program: typeof examPrograms[0]; 
         </div>
       </GlassCard>
 
+      {/* Purchase Modal */}
       <UpgradeModal
-        open={upgradeModalOpen}
-        onOpenChange={setUpgradeModalOpen}
+        open={purchaseModalOpen}
+        onOpenChange={setPurchaseModalOpen}
         feature="exam_prep"
       />
     </>
@@ -258,50 +258,44 @@ function ExamProgramCard({ program, isPro }: { program: typeof examPrograms[0]; 
 
 export default function ExamPrepPage() {
   const { isPro, isLoading } = useSubscription()
+  // In a real app, this would come from Supabase tracking user purchases
+  const purchasedPrograms: string[] = []
 
   return (
-    <div className="space-y-8 pt-12 lg:pt-0">
+    <div className="space-y-8 pt-12 lg:pt-0 animate-fade-in-up">
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-3xl font-bold text-foreground">Exam Prep Center</h1>
-            {isPro && (
-              <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-warning/20 text-warning text-xs font-medium">
-                <Crown className="w-3 h-3" />
-                Pro Access
-              </span>
-            )}
           </div>
           <p className="text-muted-foreground">
-            Structured exam preparation programs designed to help you pass your certification
+            Purchase individual exam prep packages. Each includes lifetime access to all materials.
           </p>
         </div>
       </div>
 
-      {/* Pro Banner for free users */}
-      {!isPro && !isLoading && (
-        <GlassCard className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border-primary/30">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-warning/20 flex items-center justify-center shrink-0">
-                <Crown className="w-6 h-6 text-warning" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Unlock All Exam Prep Programs</h3>
-                <p className="text-sm text-muted-foreground">
-                  Get full access to structured study paths, practice exams, and case simulations
-                </p>
-              </div>
+      {/* Value Proposition Banner */}
+      <GlassCard className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border-primary/30">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
+              <Target className="w-6 h-6 text-primary" />
             </div>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 shrink-0">
-              <Zap className="w-4 h-4 mr-2" />
-              Upgrade to Pro
-            </Button>
+            <div>
+              <h3 className="font-semibold text-foreground">One-Time Purchase, Lifetime Access</h3>
+              <p className="text-sm text-muted-foreground">
+                Each exam prep package is independently purchasable. No subscriptions required.
+              </p>
+            </div>
           </div>
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-        </GlassCard>
-      )}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <CheckCircle className="w-4 h-4 text-success" />
+            <span>All materials included</span>
+          </div>
+        </div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      </GlassCard>
 
       {/* Program Phases Explanation */}
       <GlassCard>
@@ -334,14 +328,32 @@ export default function ExamPrepPage() {
       <div>
         <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
           <Star className="w-5 h-5 text-warning" />
-          Available Programs
+          Available Exam Prep Packages
         </h2>
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {examPrograms.map((program) => (
-            <ExamProgramCard key={program.id} program={program} isPro={isPro} />
+          {examPrograms.map((program, index) => (
+            <div key={program.id} className="animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
+              <ExamProgramCard 
+                program={program} 
+                isPurchased={purchasedPrograms.includes(program.id)} 
+              />
+            </div>
           ))}
         </div>
       </div>
+
+      {/* Pricing Summary */}
+      <GlassCard>
+        <h2 className="text-lg font-semibold text-foreground mb-4">Pricing Summary</h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {examPrograms.map((program) => (
+            <div key={program.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/30">
+              <span className="text-sm text-foreground truncate">{program.name.replace(" Prep", "")}</span>
+              <span className="text-sm font-bold text-primary ml-2">${program.price}</span>
+            </div>
+          ))}
+        </div>
+      </GlassCard>
     </div>
   )
 }

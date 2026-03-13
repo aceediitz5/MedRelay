@@ -179,6 +179,15 @@ const pricingPlans = [
   },
 ]
 
+// Exam prep packages - one-time purchases
+const examPackages = [
+  { name: "NREMT Certification Prep", price: 99, duration: "8-12 weeks", flashcards: 450, questions: 600, simulations: 45 },
+  { name: "Paramedic Certification Prep", price: 129, duration: "12-16 weeks", flashcards: 650, questions: 850, simulations: 60 },
+  { name: "NCLEX Nursing Prep", price: 149, duration: "10-14 weeks", flashcards: 800, questions: 1000, simulations: 50 },
+  { name: "MCAT Foundations", price: 199, duration: "16-20 weeks", flashcards: 950, questions: 1200, simulations: 40 },
+  { name: "USMLE Step 1 Prep", price: 249, duration: "20-24 weeks", flashcards: 1100, questions: 1500, simulations: 80 },
+]
+
 // ECG Line SVG Component
 function ECGLine({ className }: { className?: string }) {
   return (
@@ -562,6 +571,52 @@ export default function LandingPage() {
                       Cancel anytime. No questions asked.
                     </p>
                   )}
+                </div>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Exam Prep Packages Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-950/5 to-transparent" />
+        <div className="max-w-6xl mx-auto relative">
+          <ScrollReveal animation="fade-up">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-medium mb-4">
+                <Star className="w-4 h-4" />
+                <span>Exam Prep Packages</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">
+                Individual Certification Prep
+              </h2>
+              <p className="text-gray-400 max-w-xl mx-auto">
+                Purchase exam prep packages separately. One-time payment, lifetime access.
+              </p>
+            </div>
+          </ScrollReveal>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {examPackages.map((pkg, index) => (
+              <ScrollReveal key={pkg.name} animation="fade-up" delay={80 * index}>
+                <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-5 hover:border-cyan-500/30 hover:bg-cyan-500/5 transition-all duration-300 h-full flex flex-col">
+                  <h3 className="font-semibold text-white text-sm mb-2">{pkg.name}</h3>
+                  <div className="mb-3">
+                    <span className="text-2xl font-bold text-white">${pkg.price}</span>
+                    <span className="text-xs text-gray-500 ml-1">one-time</span>
+                  </div>
+                  <div className="text-xs text-gray-400 mb-3">{pkg.duration}</div>
+                  <ul className="space-y-1.5 text-xs text-gray-400 mb-4 flex-1">
+                    <li>{pkg.flashcards}+ flashcards</li>
+                    <li>{pkg.questions}+ questions</li>
+                    <li>{pkg.simulations} simulations</li>
+                  </ul>
+                  <Link href="/auth/sign-up">
+                    <Button size="sm" variant="outline" className="w-full text-xs border-white/10 hover:bg-white/5">
+                      Get Started
+                    </Button>
+                  </Link>
                 </div>
               </ScrollReveal>
             ))}

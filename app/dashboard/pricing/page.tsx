@@ -13,11 +13,95 @@ import {
   BookOpen,
   HelpCircle,
   Stethoscope,
-  TrendingUp,
   Shield,
   Clock,
+  Ambulance,
+  Hospital,
+  Microscope,
+  GraduationCap,
+  FileText,
+  ChevronRight,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+// Individual exam prep packages - independently purchasable
+const examPackages = [
+  {
+    id: "nremt",
+    name: "NREMT Certification Prep",
+    price: 99,
+    duration: "8-12 weeks",
+    icon: Ambulance,
+    color: "from-orange-500/20 to-red-500/20",
+    borderColor: "border-orange-500/30",
+    iconColor: "text-orange-400",
+    flashcards: 450,
+    questions: 600,
+    simulations: 45,
+    practiceExams: 5,
+    features: ["450+ flashcards", "600+ practice questions", "45 case simulations", "5 full practice exams", "8-12 week study plan", "Lifetime access"],
+  },
+  {
+    id: "paramedic",
+    name: "Paramedic Certification Prep",
+    price: 129,
+    duration: "12-16 weeks",
+    icon: Ambulance,
+    color: "from-red-500/20 to-orange-500/20",
+    borderColor: "border-red-500/30",
+    iconColor: "text-red-400",
+    flashcards: 650,
+    questions: 850,
+    simulations: 60,
+    practiceExams: 6,
+    features: ["650+ flashcards", "850+ practice questions", "60 case simulations", "6 full practice exams", "12-16 week study plan", "Lifetime access"],
+  },
+  {
+    id: "nclex",
+    name: "NCLEX Nursing Prep",
+    price: 149,
+    duration: "10-14 weeks",
+    icon: Hospital,
+    color: "from-pink-500/20 to-rose-500/20",
+    borderColor: "border-pink-500/30",
+    iconColor: "text-pink-400",
+    flashcards: 800,
+    questions: 1000,
+    simulations: 50,
+    practiceExams: 8,
+    features: ["800+ flashcards", "1,000+ practice questions", "50 case simulations", "8 full practice exams", "10-14 week study plan", "Lifetime access"],
+  },
+  {
+    id: "mcat",
+    name: "MCAT Foundations",
+    price: 199,
+    duration: "16-20 weeks",
+    icon: Microscope,
+    color: "from-cyan-500/20 to-blue-500/20",
+    borderColor: "border-cyan-500/30",
+    iconColor: "text-cyan-400",
+    flashcards: 950,
+    questions: 1200,
+    simulations: 40,
+    practiceExams: 10,
+    features: ["950+ flashcards", "1,200+ practice questions", "40 case simulations", "10 full practice exams", "16-20 week study plan", "Lifetime access"],
+  },
+  {
+    id: "usmle",
+    name: "USMLE Step 1 Prep",
+    price: 249,
+    duration: "20-24 weeks",
+    icon: GraduationCap,
+    color: "from-purple-500/20 to-indigo-500/20",
+    borderColor: "border-purple-500/30",
+    iconColor: "text-purple-400",
+    flashcards: 1100,
+    questions: 1500,
+    simulations: 80,
+    practiceExams: 12,
+    features: ["1,100+ flashcards", "1,500+ practice questions", "80 case simulations", "12 full practice exams", "20-24 week study plan", "Lifetime access"],
+  },
+]
 
 // Comparison features for the table
 const comparisonFeatures = [
@@ -184,9 +268,85 @@ export default function PricingPage() {
         })}
       </div>
 
+      {/* Exam Prep Packages Section */}
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-foreground mb-2">Exam Prep Packages</h2>
+          <p className="text-muted-foreground">
+            One-time purchase. Lifetime access. No subscription required.
+          </p>
+        </div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          {examPackages.map((pkg, index) => {
+            const Icon = pkg.icon
+            return (
+              <GlassCard
+                key={pkg.id}
+                className={cn(
+                  "flex flex-col relative transition-all duration-300 hover:scale-[1.02] card-hover",
+                  `border ${pkg.borderColor}`
+                )}
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                {/* Icon and Name */}
+                <div className={cn(
+                  "w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-gradient-to-br",
+                  pkg.color
+                )}>
+                  <Icon className={cn("w-6 h-6", pkg.iconColor)} />
+                </div>
+
+                <h3 className="font-semibold text-foreground text-sm mb-1">{pkg.name}</h3>
+                
+                {/* Price */}
+                <div className="mb-3">
+                  <span className="text-3xl font-bold text-foreground">${pkg.price}</span>
+                  <span className="text-xs text-muted-foreground ml-1">one-time</span>
+                </div>
+
+                {/* Duration */}
+                <div className="flex items-center gap-1 text-xs text-muted-foreground mb-4">
+                  <Clock className="w-3.5 h-3.5" />
+                  {pkg.duration}
+                </div>
+
+                {/* Content Stats */}
+                <div className="space-y-2 mb-4 flex-1">
+                  <div className="flex items-center gap-2 text-xs">
+                    <BookOpen className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-muted-foreground">{pkg.flashcards}+ flashcards</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <HelpCircle className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-muted-foreground">{pkg.questions}+ questions</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <Stethoscope className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-muted-foreground">{pkg.simulations} simulations</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <FileText className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-muted-foreground">{pkg.practiceExams} practice exams</span>
+                  </div>
+                </div>
+
+                {/* CTA */}
+                <Button 
+                  className="w-full btn-hover-lift bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90"
+                  size="sm"
+                >
+                  Purchase <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </GlassCard>
+            )
+          })}
+        </div>
+      </div>
+
       {/* Comparison Table */}
       <GlassCard className="max-w-4xl mx-auto overflow-hidden">
-        <h2 className="text-xl font-semibold text-foreground mb-6">Feature Comparison</h2>
+        <h2 className="text-xl font-semibold text-foreground mb-6">Subscription Feature Comparison</h2>
 
         <div className="overflow-x-auto">
           <table className="w-full">
