@@ -70,7 +70,7 @@ export default function LoginPage() {
                 Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" aria-hidden="true" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
                 <Input
                   id="email"
                   type="email"
@@ -88,8 +88,9 @@ export default function LoginPage() {
               <label htmlFor="password" className="text-sm font-medium text-foreground">
                 Password
               </label>
+
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" aria-hidden="true" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
                 <Input
                   id="password"
                   type="password"
@@ -100,6 +101,16 @@ export default function LoginPage() {
                   required
                   autoComplete="current-password"
                 />
+              </div>
+
+              {/* Forgot password link */}
+              <div className="text-right">
+                <Link
+                  href="/reset-password"
+                  className="text-sm text-primary hover:underline"
+                >
+                  Forgot password?
+                </Link>
               </div>
             </div>
 
@@ -121,7 +132,7 @@ export default function LoginPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               {"Don't have an account? "}
-              <Link href="/auth/sign-up" className="text-primary hover:underline font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 rounded">
+              <Link href="/auth/sign-up" className="text-primary hover:underline font-medium">
                 Sign up
               </Link>
             </p>
