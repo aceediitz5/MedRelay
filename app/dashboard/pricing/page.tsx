@@ -1,5 +1,6 @@
 "use client"
 
+import { Fragment } from "react"
 import { GlassCard } from "@/components/ui/glass-card"
 import { Button } from "@/components/ui/button"
 import { useSubscription } from "@/lib/subscription/context"
@@ -203,8 +204,8 @@ export default function PricingPage() {
             </thead>
             <tbody>
               {comparisonFeatures.map((category, categoryIndex) => (
-                <>
-                  <tr key={category.category}>
+                <Fragment key={category.category}>
+                  <tr>
                     <td
                       colSpan={3}
                       className={cn(
@@ -242,7 +243,7 @@ export default function PricingPage() {
                       </td>
                     </tr>
                   ))}
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>
