@@ -34,7 +34,7 @@ export function LockedContent({
     flashcards: "Unlock unlimited flashcards with MedRelay Pro",
     questions: "Unlock unlimited questions with MedRelay Pro",
     simulations: "Unlock case simulations with MedRelay Pro",
-    exam_prep: "Unlock exam prep programs with MedRelay Pro",
+    exam_prep: "Exam prep programs are sold separately",
     analytics: "Unlock advanced analytics with MedRelay Pro",
   }
 
@@ -104,7 +104,7 @@ export function UpgradeBanner() {
           <div>
             <h3 className="font-semibold text-foreground">Upgrade to MedRelay Pro</h3>
             <p className="text-sm text-muted-foreground">
-              Unlimited access to all study materials, simulations, and exam prep
+              Unlimited access to all study materials and simulations
             </p>
           </div>
         </div>

@@ -119,7 +119,7 @@ const comparisonFeatures = [
       { name: "Full question bank (1,000+)", free: false, pro: true },
       { name: "Full flashcard library (2,000+)", free: false, pro: true },
       { name: "All 20+ medical topics", free: false, pro: true },
-      { name: "Exam prep programs", free: "View only", pro: "Full access" },
+      { name: "Exam prep programs", free: "Sold separately", pro: "Sold separately" },
     ],
   },
   {
@@ -162,7 +162,6 @@ const plans = [
       "Unlimited flashcard reviews",
       "Unlimited practice questions",
       "Full case simulation access",
-      "All exam prep programs",
       "Advanced analytics & tracking",
       "XP & achievements system",
       "All 20+ medical topics",
@@ -437,12 +436,6 @@ export default function PricingPage() {
             <h3 className="font-medium text-foreground mb-1">Can I cancel anytime?</h3>
             <p className="text-sm text-muted-foreground">
               Yes! You can cancel your subscription at any time. Your access will continue until the end of your billing period.
-            </p>
-          </div>
-          <div>
-            <h3 className="font-medium text-foreground mb-1">Is there a student discount?</h3>
-            <p className="text-sm text-muted-foreground">
-              We offer 50% off for verified students. Contact support with your student ID to get the discount applied.
             </p>
           </div>
           <div>

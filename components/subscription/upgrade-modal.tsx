@@ -35,8 +35,8 @@ const featureMessages = {
     icon: Stethoscope,
   },
   exam_prep: {
-    title: "Unlock Exam Prep Programs",
-    description: "Structured exam preparation programs are available with MedRelay Pro.",
+    title: "Purchase Exam Prep Package",
+    description: "Exam prep programs are sold separately. Choose the certification you need.",
     icon: TrendingUp,
   },
   analytics: {
@@ -50,7 +50,6 @@ const proFeatures = [
   "Unlimited flashcard reviews",
   "Unlimited practice questions",
   "Full case simulation access",
-  "All exam prep programs",
   "Advanced analytics & tracking",
   "XP achievements system",
   "Full topic library access",
