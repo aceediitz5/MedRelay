@@ -14,6 +14,11 @@ import {
   Clock,
   ArrowRight,
   Zap,
+  Trophy,
+  Medal,
+  Star,
+  Play,
+  Calendar,
 } from "lucide-react"
 
 async function getDashboardData(userId: string) {
@@ -37,14 +42,22 @@ async function getDashboardData(userId: string) {
     .select("*")
     .eq("user_id", userId)
 
-  const { data: simProgress } = await supabase
-    .from("user_simulation_progress")
-    .select("*, case_simulations(title)")
+  const { data: caseProgress } = await supabase
+    .from("user_case_progress")
+    .select("*")
     .eq("user_id", userId)
 
-  // Get daily study log for streak
+  // Get daily study log for today and streak
+  const today = new Date().toISOString().split("T")[0]
+  const { data: todayLog } = await supabase
+    .from("daily_study_logs")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("study_date", today)
+    .single()
+
   const { data: studyLogs } = await supabase
-    .from("daily_study_log")
+    .from("daily_study_logs")
     .select("*")
     .eq("user_id", userId)
     .order("study_date", { ascending: false })
@@ -56,36 +69,46 @@ async function getDashboardData(userId: string) {
     .select("id, title, topic:topics(name)")
     .limit(3)
 
+  // Get user's achievements count
+  const { count: achievementsCount } = await supabase
+    .from("user_achievements")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId)
+
   // Calculate stats
   const cardsStudied = flashcardProgress?.length || 0
   const questionsAnswered = questionProgress?.length || 0
   const correctAnswers = questionProgress?.filter(q => q.is_correct)?.length || 0
   const accuracy = questionsAnswered > 0 ? Math.round((correctAnswers / questionsAnswered) * 100) : 0
-  const simulationsCompleted = simProgress?.filter(s => s.status === "completed")?.length || 0
+  const simulationsCompleted = caseProgress?.filter(s => s.completed)?.length || 0
 
-  // Calculate streak
-  let streak = 0
-  if (studyLogs && studyLogs.length > 0) {
-    const today = new Date().toISOString().split("T")[0]
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0]
-    
-    if (studyLogs[0]?.study_date === today || studyLogs[0]?.study_date === yesterday) {
-      streak = 1
-      for (let i = 1; i < studyLogs.length; i++) {
-        const prevDate = new Date(studyLogs[i - 1].study_date)
-        const currDate = new Date(studyLogs[i].study_date)
-        const diffDays = (prevDate.getTime() - currDate.getTime()) / 86400000
-        if (diffDays === 1) {
-          streak++
-        } else {
-          break
-        }
-      }
-    }
-  }
+  // Use profile streak or calculate from logs
+  const streak = profile?.study_streak || 0
+  const longestStreak = profile?.longest_streak || 0
+  const totalXp = profile?.total_xp || 0
+  const level = profile?.level || 1
 
-  // Calculate study time this week (mock for now)
-  const studyMinutes = studyLogs?.reduce((acc, log) => acc + (log.minutes_studied || 0), 0) || 0
+  // Calculate XP to next level (each level requires 100 * level XP)
+  const xpForCurrentLevel = (level - 1) * 100 * level / 2
+  const xpForNextLevel = level * 100 * (level + 1) / 2
+  const xpProgress = totalXp - xpForCurrentLevel
+  const xpNeeded = xpForNextLevel - xpForCurrentLevel
+  const levelProgress = Math.round((xpProgress / xpNeeded) * 100)
+
+  // Calculate study time this week (estimate based on activity)
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+  const weeklyLogs = studyLogs?.filter(log => log.study_date >= weekAgo) || []
+  // Estimate: 1 min per flashcard, 2 min per question, 10 min per case
+  const studyMinutes = weeklyLogs.reduce((acc, log) => {
+    return acc + ((log.flashcards_reviewed || 0) * 1) + ((log.questions_answered || 0) * 2) + ((log.cases_completed || 0) * 10)
+  }, 0)
+  const weeklyXp = weeklyLogs.reduce((acc, log) => acc + (log.xp_earned || 0), 0)
+
+  // Today's progress
+  const todayFlashcards = todayLog?.flashcards_reviewed || 0
+  const todayQuestions = todayLog?.questions_answered || 0
+  const todayCases = todayLog?.cases_completed || 0
+  const todayXp = todayLog?.xp_earned || 0
 
   return {
     profile,
@@ -94,8 +117,20 @@ async function getDashboardData(userId: string) {
     accuracy,
     simulationsCompleted,
     streak,
+    longestStreak,
+    totalXp,
+    level,
+    levelProgress,
+    xpProgress,
+    xpNeeded,
     studyMinutes,
+    weeklyXp,
     recentDecks,
+    achievementsCount: achievementsCount || 0,
+    todayFlashcards,
+    todayQuestions,
+    todayCases,
+    todayXp,
   }
 }
 
@@ -106,11 +141,11 @@ export default async function DashboardPage() {
   if (!user) return null
 
   const data = await getDashboardData(user.id)
-  const firstName = data.profile?.full_name?.split(" ")[0] || user.email?.split("@")[0] || "Student"
+  const firstName = data.profile?.username?.split(" ")[0] || user.email?.split("@")[0] || "Student"
 
   return (
     <div className="space-y-8 pt-12 lg:pt-0">
-      {/* Header */}
+      {/* Header with XP and Streak */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">
@@ -125,15 +160,52 @@ export default async function DashboardPage() {
             <Flame className="w-5 h-5" />
             <span className="font-semibold">{data.streak} day streak</span>
           </div>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-500/20 text-yellow-400">
+            <Zap className="w-5 h-5" />
+            <span className="font-semibold">{data.totalXp.toLocaleString()} XP</span>
+          </div>
         </div>
       </div>
+
+      {/* Level Progress Card */}
+      <GlassCard glow>
+        <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-xl bg-primary/20 flex items-center justify-center">
+              <Medal className="w-8 h-8 text-primary" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-bold text-foreground">Level {data.level}</span>
+                <Star className="w-5 h-5 text-yellow-400" />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {data.xpProgress.toLocaleString()} / {data.xpNeeded.toLocaleString()} XP to Level {data.level + 1}
+              </p>
+            </div>
+          </div>
+          <div className="flex-1 space-y-2">
+            <Progress value={data.levelProgress} className="h-3" />
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <span>+{data.todayXp} XP today</span>
+              <span>+{data.weeklyXp} XP this week</span>
+            </div>
+          </div>
+          <Link href="/dashboard/study-plan">
+            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Play className="w-5 h-5 mr-2" />
+              Start Studying
+            </Button>
+          </Link>
+        </div>
+      </GlassCard>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Cards Studied"
           value={data.cardsStudied}
-          subtitle="Total flashcards reviewed"
+          subtitle={`+${data.todayFlashcards} today`}
           icon={BookOpen}
           trend={{ value: 12, positive: true }}
         />
@@ -147,7 +219,7 @@ export default async function DashboardPage() {
         <StatCard
           title="Simulations"
           value={data.simulationsCompleted}
-          subtitle="Cases completed"
+          subtitle={`+${data.todayCases} today`}
           icon={Stethoscope}
         />
         <StatCard
@@ -173,7 +245,7 @@ export default async function DashboardPage() {
                   <BookOpen className="w-5 h-5 text-primary" />
                 </div>
                 <h3 className="font-medium text-foreground">Flashcards</h3>
-                <p className="text-sm text-muted-foreground mt-1">Review key concepts</p>
+                <p className="text-sm text-muted-foreground mt-1">+5 XP per card</p>
               </div>
             </Link>
             <Link href="/dashboard/questions" className="block">
@@ -182,7 +254,7 @@ export default async function DashboardPage() {
                   <HelpCircle className="w-5 h-5 text-accent" />
                 </div>
                 <h3 className="font-medium text-foreground">Question Bank</h3>
-                <p className="text-sm text-muted-foreground mt-1">Test your knowledge</p>
+                <p className="text-sm text-muted-foreground mt-1">+10 XP correct</p>
               </div>
             </Link>
             <Link href="/dashboard/simulations" className="block">
@@ -191,7 +263,7 @@ export default async function DashboardPage() {
                   <Stethoscope className="w-5 h-5 text-success" />
                 </div>
                 <h3 className="font-medium text-foreground">Case Sims</h3>
-                <p className="text-sm text-muted-foreground mt-1">Practice scenarios</p>
+                <p className="text-sm text-muted-foreground mt-1">+50 XP complete</p>
               </div>
             </Link>
           </div>
@@ -207,29 +279,30 @@ export default async function DashboardPage() {
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-muted-foreground">Cards reviewed</span>
-                <span className="text-foreground font-medium">{Math.min(data.cardsStudied, 20)}/20</span>
+                <span className="text-foreground font-medium">{Math.min(data.todayFlashcards, 20)}/20</span>
               </div>
-              <Progress value={Math.min((data.cardsStudied / 20) * 100, 100)} className="h-2" />
+              <Progress value={Math.min((data.todayFlashcards / 20) * 100, 100)} className="h-2" />
             </div>
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-muted-foreground">Questions answered</span>
-                <span className="text-foreground font-medium">{Math.min(data.questionsAnswered, 10)}/10</span>
+                <span className="text-foreground font-medium">{Math.min(data.todayQuestions, 10)}/10</span>
               </div>
-              <Progress value={Math.min((data.questionsAnswered / 10) * 100, 100)} className="h-2" />
+              <Progress value={Math.min((data.todayQuestions / 10) * 100, 100)} className="h-2" />
             </div>
             <div className="pt-2">
-              <p className="text-sm text-muted-foreground">
-                {data.cardsStudied >= 20 && data.questionsAnswered >= 10 
-                  ? "Great job! You've completed your daily goal!"
-                  : "Keep going! You're making great progress."}
-              </p>
+              <Link href="/dashboard/study-plan">
+                <Button variant="outline" className="w-full">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  View Study Plan
+                </Button>
+              </Link>
             </div>
           </div>
         </GlassCard>
       </div>
 
-      {/* Recent Activity & Topics */}
+      {/* Recent Activity & Achievements */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Decks */}
         <GlassCard>
@@ -269,24 +342,24 @@ export default async function DashboardPage() {
           </div>
         </GlassCard>
 
-        {/* Performance Overview */}
+        {/* Achievements & Leaderboard */}
         <GlassCard>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-foreground">Performance</h2>
-            <TrendingUp className="w-5 h-5 text-success" />
+            <h2 className="text-xl font-semibold text-foreground">Achievements</h2>
+            <Trophy className="w-5 h-5 text-yellow-400" />
           </div>
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/30">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-success/20 flex items-center justify-center">
-                  <Target className="w-5 h-5 text-success" />
+                <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                  <Trophy className="w-5 h-5 text-yellow-400" />
                 </div>
                 <div>
-                  <p className="font-medium text-foreground">Accuracy Rate</p>
-                  <p className="text-sm text-muted-foreground">Question bank performance</p>
+                  <p className="font-medium text-foreground">Achievements</p>
+                  <p className="text-sm text-muted-foreground">Badges unlocked</p>
                 </div>
               </div>
-              <span className="text-2xl font-bold text-success">{data.accuracy}%</span>
+              <span className="text-2xl font-bold text-yellow-400">{data.achievementsCount}</span>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/30">
               <div className="flex items-center gap-3">
@@ -294,23 +367,25 @@ export default async function DashboardPage() {
                   <Flame className="w-5 h-5 text-warning" />
                 </div>
                 <div>
-                  <p className="font-medium text-foreground">Current Streak</p>
-                  <p className="text-sm text-muted-foreground">Days of consistent study</p>
+                  <p className="font-medium text-foreground">Best Streak</p>
+                  <p className="text-sm text-muted-foreground">Longest run</p>
                 </div>
               </div>
-              <span className="text-2xl font-bold text-warning">{data.streak}</span>
+              <span className="text-2xl font-bold text-warning">{data.longestStreak}</span>
             </div>
-            <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/30">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                  <BookOpen className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium text-foreground">Cards Mastered</p>
-                  <p className="text-sm text-muted-foreground">Confidence level 4+</p>
-                </div>
-              </div>
-              <span className="text-2xl font-bold text-primary">{data.cardsStudied}</span>
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              <Link href="/dashboard/achievements">
+                <Button variant="outline" className="w-full">
+                  <Trophy className="w-4 h-4 mr-2" />
+                  Achievements
+                </Button>
+              </Link>
+              <Link href="/dashboard/leaderboard">
+                <Button variant="outline" className="w-full">
+                  <Medal className="w-4 h-4 mr-2" />
+                  Leaderboard
+                </Button>
+              </Link>
             </div>
           </div>
         </GlassCard>

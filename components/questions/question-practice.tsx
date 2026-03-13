@@ -6,6 +6,9 @@ import { GlassCard } from "@/components/ui/glass-card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { createClient } from "@/lib/supabase/client"
+import { useSubscription } from "@/lib/subscription/context"
+import { UpgradeModal } from "@/components/subscription/upgrade-modal"
+import { UsageIndicator } from "@/components/subscription/locked-content"
 import {
   ArrowLeft,
   ChevronRight,
@@ -15,8 +18,20 @@ import {
   RotateCcw,
   Trophy,
   BookOpen,
+  Zap,
+  Star,
+  Lock,
+  Crown,
+  Flame,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+// XP rewards based on difficulty and correctness
+const XP_REWARDS = {
+  easy: { correct: 10, incorrect: 2 },
+  medium: { correct: 20, incorrect: 5 },
+  hard: { correct: 35, incorrect: 8 },
+}
 
 interface Question {
   id: string
@@ -35,11 +50,16 @@ interface QuestionPracticeProps {
 }
 
 export function QuestionPractice({ questions, userId, mode }: QuestionPracticeProps) {
+  const { isPro, canUseQuestions, dailyUsage, refreshUsage } = useSubscription()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
   const [showExplanation, setShowExplanation] = useState(false)
   const [answers, setAnswers] = useState<Map<string, { selected: number; correct: boolean }>>(new Map())
   const [sessionComplete, setSessionComplete] = useState(false)
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false)
+  const [sessionXp, setSessionXp] = useState(0)
+  const [showXpPopup, setShowXpPopup] = useState(false)
+  const [lastXpGained, setLastXpGained] = useState(0)
 
   const currentQuestion = questions[currentIndex]
 
@@ -61,24 +81,41 @@ export function QuestionPractice({ questions, userId, mode }: QuestionPracticePr
   const handleSubmitAnswer = useCallback(async () => {
     if (selectedAnswer === null || !currentQuestion) return
 
+    // Check usage limits
+    if (!canUseQuestions && !isPro) {
+      setUpgradeModalOpen(true)
+      return
+    }
+
     const isCorrect = selectedAnswer === currentQuestion.correct_answer
+    const difficulty = (currentQuestion.difficulty || "medium") as keyof typeof XP_REWARDS
+    const xpEarned = isCorrect 
+      ? XP_REWARDS[difficulty].correct 
+      : XP_REWARDS[difficulty].incorrect
+    
+    // Show XP popup
+    setLastXpGained(xpEarned)
+    setSessionXp(prev => prev + xpEarned)
+    setShowXpPopup(true)
+    setTimeout(() => setShowXpPopup(false), 1500)
     
     // Save progress
     const supabase = createClient()
+    const options = ["a", "b", "c", "d"]
     await supabase
       .from("user_question_progress")
       .upsert({
         user_id: userId,
         question_id: currentQuestion.id,
         is_correct: isCorrect,
-        selected_answer: selectedAnswer,
+        selected_answer: options[selectedAnswer] || "a",
         answered_at: new Date().toISOString(),
-      })
+      }, { onConflict: "user_id,question_id" })
 
     // Update daily log
     const today = new Date().toISOString().split("T")[0]
     const { data: existingLog } = await supabase
-      .from("daily_study_log")
+      .from("daily_study_logs")
       .select("*")
       .eq("user_id", userId)
       .eq("study_date", today)
@@ -86,26 +123,31 @@ export function QuestionPractice({ questions, userId, mode }: QuestionPracticePr
 
     if (existingLog) {
       await supabase
-        .from("daily_study_log")
+        .from("daily_study_logs")
         .update({
-          questions_answered: existingLog.questions_answered + 1,
-          minutes_studied: existingLog.minutes_studied + 2,
+          questions_answered: (existingLog.questions_answered || 0) + 1,
+          xp_earned: (existingLog.xp_earned || 0) + xpEarned,
         })
         .eq("id", existingLog.id)
     } else {
       await supabase
-        .from("daily_study_log")
+        .from("daily_study_logs")
         .insert({
           user_id: userId,
           study_date: today,
           questions_answered: 1,
-          minutes_studied: 2,
+          xp_earned: xpEarned,
         })
     }
 
+    // Note: XP is tracked in daily_study_logs
+    
+    // Refresh usage counters
+    await refreshUsage()
+
     setAnswers(prev => new Map(prev).set(currentQuestion.id, { selected: selectedAnswer, correct: isCorrect }))
     setShowExplanation(true)
-  }, [selectedAnswer, currentQuestion, userId])
+  }, [selectedAnswer, currentQuestion, userId, canUseQuestions, isPro, refreshUsage])
 
   const handleNext = useCallback(() => {
     if (currentIndex < questions.length - 1) {
@@ -153,19 +195,31 @@ export function QuestionPractice({ questions, userId, mode }: QuestionPracticePr
   if (sessionComplete) {
     const accuracy = answers.size > 0 ? Math.round((correctAnswers / answers.size) * 100) : 0
     return (
-      <div className="space-y-8 pt-12 lg:pt-0">
+      <div className="space-y-8 pt-12 lg:pt-0 max-w-xl mx-auto">
         <Link href="/dashboard/questions" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Back to Question Bank
         </Link>
-        <GlassCard className="text-center py-12 max-w-xl mx-auto" glow>
+        <GlassCard className="text-center py-12" glow>
           <div className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center mx-auto mb-6">
             <Trophy className="w-8 h-8 text-success" />
           </div>
           <h2 className="text-2xl font-bold text-foreground mb-2">Practice Complete!</h2>
-          <p className="text-muted-foreground mb-6">
+          <p className="text-muted-foreground mb-4">
             You scored {correctAnswers} out of {answers.size} questions
           </p>
+          
+          {/* XP Summary */}
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+              <Zap className="w-5 h-5 text-yellow-400" />
+              <span className="font-bold text-yellow-400">+{sessionXp} XP</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 border border-primary/20">
+              <Star className="w-5 h-5 text-primary" />
+              <span className="font-bold text-primary">{accuracy}% Acc</span>
+            </div>
+          </div>
           
           <div className="grid grid-cols-3 gap-4 mb-8">
             <div className="text-center">
@@ -178,9 +232,9 @@ export function QuestionPractice({ questions, userId, mode }: QuestionPracticePr
             </div>
             <div className="text-center">
               <p className={cn("text-3xl font-bold", accuracy >= 70 ? "text-success" : accuracy >= 50 ? "text-warning" : "text-destructive")}>
-                {accuracy}%
+                {answers.size - correctAnswers}
               </p>
-              <p className="text-sm text-muted-foreground">Accuracy</p>
+              <p className="text-sm text-muted-foreground">Incorrect</p>
             </div>
           </div>
 
@@ -189,9 +243,9 @@ export function QuestionPractice({ questions, userId, mode }: QuestionPracticePr
               <RotateCcw className="w-4 h-4 mr-2" />
               Practice Again
             </Button>
-            <Link href="/dashboard/questions">
+            <Link href="/dashboard/study">
               <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                Back to Questions
+                Daily Study
               </Button>
             </Link>
           </div>
@@ -201,6 +255,7 @@ export function QuestionPractice({ questions, userId, mode }: QuestionPracticePr
   }
 
   return (
+    <>
     <div className="space-y-6 pt-12 lg:pt-0 max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -213,12 +268,54 @@ export function QuestionPractice({ questions, userId, mode }: QuestionPracticePr
         </span>
       </div>
 
+      {/* Daily Usage Indicator for Free Users */}
+      {!isPro && (
+        <div className="p-4 rounded-lg bg-secondary/50 border border-border">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-foreground flex items-center gap-2">
+              <HelpCircle className="w-4 h-4 text-primary" />
+              Daily Question Limit
+            </span>
+            {!canUseQuestions && (
+              <span className="text-xs px-2 py-1 rounded-full bg-warning/20 text-warning flex items-center gap-1">
+                <Lock className="w-3 h-3" />
+                Limit Reached
+              </span>
+            )}
+          </div>
+          <UsageIndicator
+            used={dailyUsage.questionsAnswered}
+            limit={10}
+            label="Questions answered today"
+            isPro={isPro}
+          />
+          {!canUseQuestions && (
+            <Button
+              onClick={() => setUpgradeModalOpen(true)}
+              size="sm"
+              className="mt-3 w-full bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <Crown className="w-4 h-4 mr-2" />
+              Upgrade for Unlimited
+            </Button>
+          )}
+        </div>
+      )}
+
       {/* Progress */}
       <div className="space-y-2">
         <Progress value={progress} className="h-2" />
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>{answers.size} answered</span>
-          <span className="text-success">{correctAnswers} correct</span>
+        <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center gap-4 text-muted-foreground">
+            <span>{answers.size} answered</span>
+            <span className="text-success">{correctAnswers} correct</span>
+          </div>
+          {sessionXp > 0 && (
+            <div className="flex items-center gap-1 text-yellow-400">
+              <Zap className="w-4 h-4" />
+              <span className="font-medium">+{sessionXp} XP</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -322,6 +419,23 @@ export function QuestionPractice({ questions, userId, mode }: QuestionPracticePr
           </Button>
         )}
       </div>
+      
+      {/* XP Popup Animation */}
+      {showXpPopup && (
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none">
+          <div className="animate-bounce flex items-center gap-2 px-6 py-3 rounded-full bg-yellow-500/20 border border-yellow-500/30 backdrop-blur-sm">
+            <Zap className="w-6 h-6 text-yellow-400" />
+            <span className="text-2xl font-bold text-yellow-400">+{lastXpGained} XP</span>
+          </div>
+        </div>
+      )}
     </div>
+    
+    <UpgradeModal
+      open={upgradeModalOpen}
+      onOpenChange={setUpgradeModalOpen}
+      feature="questions"
+    />
+    </>
   )
 }

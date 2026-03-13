@@ -43,10 +43,10 @@ export default function LoginPage() {
       <div className="absolute top-20 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
       <div className="absolute bottom-20 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
 
-      <div className="w-full max-w-md relative">
+      <div className="w-full max-w-md relative animate-fade-in-up">
         {/* Logo */}
-        <Link href="/" className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center glow-sm">
+        <Link href="/" className="flex items-center justify-center gap-2 mb-8 group">
+          <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center glow-sm group-hover:scale-105 transition-transform">
             <Stethoscope className="w-5 h-5 text-primary" />
           </div>
           <span className="text-2xl font-bold text-foreground">MedRelay</span>
@@ -60,7 +60,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="space-y-5">
             {error && (
-              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm animate-scale-in" role="alert">
                 {error}
               </div>
             )}
@@ -70,15 +70,16 @@ export default function LoginPage() {
                 Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" aria-hidden="true" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 bg-input border-border"
+                  className="pl-10 h-12 bg-input border-border focus:ring-2 focus:ring-primary/50 transition-all"
                   required
+                  autoComplete="email"
                 />
               </div>
             </div>
@@ -88,22 +89,23 @@ export default function LoginPage() {
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" aria-hidden="true" />
                 <Input
                   id="password"
                   type="password"
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 bg-input border-border"
+                  className="pl-10 h-12 bg-input border-border focus:ring-2 focus:ring-primary/50 transition-all"
                   required
+                  autoComplete="current-password"
                 />
               </div>
             </div>
 
             <Button
               type="submit"
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+              className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 btn-hover-lift text-base"
               disabled={loading}
             >
               {loading ? (
@@ -119,7 +121,7 @@ export default function LoginPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               {"Don't have an account? "}
-              <Link href="/auth/sign-up" className="text-primary hover:underline font-medium">
+              <Link href="/auth/sign-up" className="text-primary hover:underline font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 rounded">
                 Sign up
               </Link>
             </p>

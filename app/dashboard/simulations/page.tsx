@@ -19,11 +19,11 @@ async function getSimulations(userId: string) {
 
   // Get user progress
   const { data: progress } = await supabase
-    .from("user_simulation_progress")
+    .from("user_case_progress")
     .select("*")
     .eq("user_id", userId)
 
-  const progressMap = new Map(progress?.map(p => [p.simulation_id, p]) || [])
+  const progressMap = new Map(progress?.map(p => [p.case_id, p]) || [])
 
   return simulations?.map(sim => ({
     ...sim,
@@ -39,11 +39,11 @@ export default async function SimulationsPage() {
 
   const simulations = await getSimulations(user.id)
 
-  const completed = simulations.filter(s => s.progress?.status === "completed").length
-  const inProgress = simulations.filter(s => s.progress?.status === "in_progress").length
+  const completed = simulations.filter(s => s.progress?.completed === true).length
+  const inProgress = simulations.filter(s => s.progress && !s.progress.completed).length
 
   return (
-    <div className="space-y-8 pt-12 lg:pt-0">
+    <div className="space-y-8 pt-12 lg:pt-0 animate-fade-in-up">
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
@@ -113,9 +113,10 @@ function SimulationCard({ simulation }: { simulation: {
   difficulty: string
   estimated_minutes: number | null
   topic: { id: string; name: string; icon: string | null } | null
-  progress: { status: string; score: number | null; completed_at: string | null } | null
+  progress: { completed: boolean; score: number | null; completed_at: string | null } | null
 }}) {
-  const status = simulation.progress?.status
+  const isCompleted = simulation.progress?.completed
+  const isInProgress = simulation.progress && !simulation.progress.completed
   const score = simulation.progress?.score
 
   return (
@@ -145,13 +146,13 @@ function SimulationCard({ simulation }: { simulation: {
           <Clock className="w-4 h-4" />
           {simulation.estimated_minutes || 15} min
         </span>
-        {status === "completed" && score !== null && (
+        {isCompleted && score !== null && (
           <span className="flex items-center gap-1 text-success">
             <Target className="w-4 h-4" />
             Score: {score}%
           </span>
         )}
-        {status === "in_progress" && (
+        {isInProgress && (
           <span className="flex items-center gap-1 text-warning">
             <AlertCircle className="w-4 h-4" />
             In Progress
@@ -161,15 +162,15 @@ function SimulationCard({ simulation }: { simulation: {
 
       <Link href={`/dashboard/simulations/${simulation.id}`} className="mt-auto">
         <Button 
-          variant={status === "completed" ? "outline" : "default"} 
+          variant={isCompleted ? "outline" : "default"} 
           className={cn(
-            "w-full",
-            status !== "completed" && "bg-primary text-primary-foreground hover:bg-primary/90"
+            "w-full btn-hover-lift",
+            !isCompleted && "bg-primary text-primary-foreground hover:bg-primary/90"
           )}
         >
-          {status === "completed" ? (
+          {isCompleted ? (
             <>Review Case</>
-          ) : status === "in_progress" ? (
+          ) : isInProgress ? (
             <><Play className="w-4 h-4 mr-2" />Continue</>
           ) : (
             <><Play className="w-4 h-4 mr-2" />Start Case</>

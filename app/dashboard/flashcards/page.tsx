@@ -20,15 +20,15 @@ async function getFlashcardDecks(userId: string) {
   // Get user progress for each deck
   const { data: progress } = await supabase
     .from("user_flashcard_progress")
-    .select("flashcard_id, confidence_level")
+    .select("flashcard_id, difficulty")
     .eq("user_id", userId)
 
-  const progressMap = new Map(progress?.map(p => [p.flashcard_id, p.confidence_level]) || [])
+  const progressMap = new Map(progress?.map(p => [p.flashcard_id, p.difficulty]) || [])
 
   return decks?.map(deck => {
     const flashcardIds = (deck.flashcards as { id: string }[])?.map(f => f.id) || []
     const studiedCards = flashcardIds.filter(id => progressMap.has(id)).length
-    const masteredCards = flashcardIds.filter(id => (progressMap.get(id) || 0) >= 4).length
+    const masteredCards = flashcardIds.filter(id => progressMap.get(id) === "easy").length
     
     return {
       ...deck,
@@ -65,7 +65,7 @@ export default async function FlashcardsPage() {
   const uncategorizedDecks = decks.filter(d => !d.topic)
 
   return (
-    <div className="space-y-8 pt-12 lg:pt-0">
+    <div className="space-y-8 pt-12 lg:pt-0 animate-fade-in-up">
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
@@ -122,8 +122,7 @@ export default async function FlashcardsPage() {
       {/* Decks by Topic */}
       {decksByTopic.map(({ topic, decks: topicDecks }) => (
         <div key={topic.id} className="space-y-4">
-          <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
-            <span className="text-2xl">{topic.icon || "📚"}</span>
+          <h2 className="text-xl font-semibold text-foreground">
             {topic.name}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -191,13 +190,13 @@ function DeckCard({ deck }: { deck: {
           </div>
           <div className="h-2 bg-secondary rounded-full overflow-hidden">
             <div 
-              className="h-full bg-primary rounded-full transition-all duration-500"
+              className="h-full bg-gradient-to-r from-primary to-accent rounded-full animate-progress"
               style={{ width: `${progress}%` }}
             />
           </div>
         </div>
-        <Button variant="ghost" size="sm" className="w-full mt-4 text-primary">
-          Study Now <ArrowRight className="w-4 h-4 ml-1" />
+        <Button variant="ghost" size="sm" className="w-full mt-4 text-primary group">
+          Study Now <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
         </Button>
       </GlassCard>
     </Link>
