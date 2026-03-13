@@ -2,17 +2,17 @@ import Stripe from "stripe"
 import { NextResponse } from "next/server"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2022-11-15", // Always set a stable API version
+  apiVersion: "2022-11-15",
 })
 
 export async function POST(req: Request) {
   try {
     const { priceId, type } = await req.json()
 
-    // Determine checkout mode
+    // Determine checkout mode: subscription or one-time payment
     const mode = type === "subscription" ? "subscription" : "payment"
 
-    // Create checkout session
+    // Create Stripe Checkout session
     const session = await stripe.checkout.sessions.create({
       mode,
       payment_method_types: ["card"],
@@ -22,8 +22,7 @@ export async function POST(req: Request) {
           quantity: 1,
         },
       ],
-      // Optional: automatically collect email
-      customer_email: undefined, // can add email if known
+      allow_promotion_codes: true, // optional
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/pricing`,
     })
@@ -35,5 +34,7 @@ export async function POST(req: Request) {
       { error: "Failed to create checkout session" },
       { status: 500 }
     )
+  }
+}    )
   }
 }
