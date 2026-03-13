@@ -180,11 +180,11 @@ const pricingPlans = [
 
 // Exam prep packages - one-time purchases
 const examPackages = [
-  { name: "NREMT Certification Prep", price: 99, duration: "8-12 weeks", flashcards: 450, questions: 600, simulations: 45 },
-  { name: "Paramedic Certification Prep", price: 129, duration: "12-16 weeks", flashcards: 650, questions: 850, simulations: 60 },
-  { name: "NCLEX Nursing Prep", price: 149, duration: "10-14 weeks", flashcards: 800, questions: 1000, simulations: 50 },
-  { name: "MCAT Foundations", price: 199, duration: "16-20 weeks", flashcards: 950, questions: 1200, simulations: 40 },
-  { name: "USMLE Step 1 Prep", price: 249, duration: "20-24 weeks", flashcards: 1100, questions: 1500, simulations: 80 },
+  { name: "NREMT Certification Prep", price: 99, duration: "8-12 weeks", flashcards: 150, questions: 200, simulations: 15 },
+  { name: "Paramedic Certification Prep", price: 129, duration: "12-16 weeks", flashcards: 200, questions: 280, simulations: 20 },
+  { name: "NCLEX Nursing Prep", price: 149, duration: "10-14 weeks", flashcards: 250, questions: 350, simulations: 18 },
+  { name: "MCAT Foundations", price: 199, duration: "16-20 weeks", flashcards: 300, questions: 400, simulations: 12 },
+  { name: "USMLE Step 1 Prep", price: 249, duration: "20-24 weeks", flashcards: 350, questions: 500, simulations: 25 },
 ]
 
 // ECG Line SVG Component
@@ -267,7 +267,7 @@ export default function LandingPage() {
           <ScrollReveal animation="fade-up" delay={100}>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-medium mb-8">
               <Activity className="w-4 h-4" />
-              <span>Trusted by 3K+ Medical Professionals</span>
+              <span>A Better Way to Study Medicine</span>
             </div>
           </ScrollReveal>
 
@@ -314,10 +314,10 @@ export default function LandingPage() {
           <ScrollReveal animation="fade-up" delay={500}>
             <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 pt-12 border-t border-white/5">
               {[
-                { value: "3K+", label: "Active Students" },
-                { value: "2K+", label: "Flashcards" },
-                { value: "1K+", label: "Practice Questions" },
-                { value: "98%", label: "Pass Rate" },
+{ value: "4K+", label: "Flashcards" },
+              { value: "5K+", label: "Practice Questions" },
+              { value: "100+", label: "Clinical Case Learning" },
+              { value: "5", label: "Exam-Focused Content" },
               ].map((stat, index) => (
                 <ScrollReveal key={stat.label} animation="scale" delay={100 * index}>
                   <div className="text-center">

@@ -38,10 +38,10 @@ const examPrograms = [
     price: 99,
     topics: ["Patient Assessment", "Airway Management", "Cardiology", "Trauma", "EMS Operations", "Pharmacology"],
     phases: [
-      { name: "Core Flashcards", items: 450, completed: 0 },
-      { name: "Practice Questions", items: 600, completed: 0 },
-      { name: "Case Simulations", items: 45, completed: 0 },
-      { name: "Full Practice Exams", items: 5, completed: 0 },
+      { name: "Core Flashcards", items: 150, completed: 0 },
+      { name: "Practice Questions", items: 200, completed: 0 },
+      { name: "Case Simulations", items: 15, completed: 0 },
+      { name: "Full Practice Exams", items: 3, completed: 0 },
     ],
   },
   {
@@ -57,10 +57,10 @@ const examPrograms = [
     price: 129,
     topics: ["Advanced Airway", "Cardiac Arrest", "Pharmacology", "Trauma Management", "Special Populations"],
     phases: [
-      { name: "Core Flashcards", items: 650, completed: 0 },
-      { name: "Practice Questions", items: 850, completed: 0 },
-      { name: "Case Simulations", items: 60, completed: 0 },
-      { name: "Full Practice Exams", items: 6, completed: 0 },
+      { name: "Core Flashcards", items: 200, completed: 0 },
+      { name: "Practice Questions", items: 280, completed: 0 },
+      { name: "Case Simulations", items: 20, completed: 0 },
+      { name: "Full Practice Exams", items: 4, completed: 0 },
     ],
   },
   {
@@ -76,10 +76,10 @@ const examPrograms = [
     price: 149,
     topics: ["Pharmacology", "Med-Surg", "Pediatrics", "Mental Health", "Maternal-Newborn", "Critical Care"],
     phases: [
-      { name: "Core Flashcards", items: 800, completed: 0 },
-      { name: "Practice Questions", items: 1000, completed: 0 },
-      { name: "Case Simulations", items: 50, completed: 0 },
-      { name: "Full Practice Exams", items: 8, completed: 0 },
+      { name: "Core Flashcards", items: 250, completed: 0 },
+      { name: "Practice Questions", items: 350, completed: 0 },
+      { name: "Case Simulations", items: 18, completed: 0 },
+      { name: "Full Practice Exams", items: 5, completed: 0 },
     ],
   },
   {
@@ -95,10 +95,10 @@ const examPrograms = [
     price: 199,
     topics: ["Biochemistry", "Biology", "Chemistry", "Physics", "Psychology", "Sociology"],
     phases: [
-      { name: "Core Flashcards", items: 950, completed: 0 },
-      { name: "Practice Questions", items: 1200, completed: 0 },
-      { name: "Case Simulations", items: 40, completed: 0 },
-      { name: "Full Practice Exams", items: 10, completed: 0 },
+      { name: "Core Flashcards", items: 300, completed: 0 },
+      { name: "Practice Questions", items: 400, completed: 0 },
+      { name: "Case Simulations", items: 12, completed: 0 },
+      { name: "Full Practice Exams", items: 6, completed: 0 },
     ],
   },
   {
@@ -114,10 +114,10 @@ const examPrograms = [
     price: 249,
     topics: ["Anatomy", "Pathology", "Pharmacology", "Physiology", "Biochemistry", "Microbiology"],
     phases: [
-      { name: "Core Flashcards", items: 1100, completed: 0 },
-      { name: "Practice Questions", items: 1500, completed: 0 },
-      { name: "Case Simulations", items: 80, completed: 0 },
-      { name: "Full Practice Exams", items: 12, completed: 0 },
+      { name: "Core Flashcards", items: 350, completed: 0 },
+      { name: "Practice Questions", items: 500, completed: 0 },
+      { name: "Case Simulations", items: 25, completed: 0 },
+      { name: "Full Practice Exams", items: 8, completed: 0 },
     ],
   },
 ]
