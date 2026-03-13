@@ -77,6 +77,7 @@ const studentTracks = [
   {
     icon: Hospital,
     title: "Nursing",
+    slug: "nursing",
     description: "NCLEX-RN/PN prep, clinical skills, patient care",
     exams: ["NCLEX-RN", "NCLEX-PN", "CCRN"],
     color: "from-pink-500/20 to-rose-500/20",
@@ -86,6 +87,7 @@ const studentTracks = [
   {
     icon: Microscope,
     title: "Pre-Med",
+    slug: "premed",
     description: "MCAT fundamentals, core sciences, research methods",
     exams: ["MCAT", "DAT", "OAT"],
     color: "from-cyan-500/20 to-blue-500/20",
@@ -95,6 +97,7 @@ const studentTracks = [
   {
     icon: GraduationCap,
     title: "Medical School",
+    slug: "medschool",
     description: "USMLE Step prep, clinical rotations, boards review",
     exams: ["USMLE Step 1", "USMLE Step 2", "COMLEX"],
     color: "from-purple-500/20 to-indigo-500/20",
@@ -328,23 +331,27 @@ export default function LandingPage() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {studentTracks.map((track) => (
-              <div
+              <Link
+                href={`/tracks/${track.slug}`}
                 key={track.title}
-                className={`group relative rounded-2xl border ${track.borderColor} bg-gradient-to-br ${track.color} p-6 hover:scale-[1.02] transition-all duration-300 cursor-pointer`}
+                className={`group relative rounded-2xl border ${track.borderColor} bg-gradient-to-br ${track.color} p-6 hover:scale-[1.02] transition-all duration-300`}
               >
                 <div className={`w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center mb-4 ${track.iconColor}`}>
                   <track.icon className="w-7 h-7" />
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2">{track.title}</h3>
                 <p className="text-gray-400 text-sm mb-4 leading-relaxed">{track.description}</p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 mb-4">
                   {track.exams.map((exam) => (
                     <span key={exam} className="text-xs px-2 py-1 rounded-full bg-white/10 text-gray-300">
                       {exam}
                     </span>
                   ))}
                 </div>
-              </div>
+                <div className="flex items-center text-sm font-medium text-white/80 group-hover:text-white transition-colors">
+                  Explore Track <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </Link>
             ))}
           </div>
         </div>

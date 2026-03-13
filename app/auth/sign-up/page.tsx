@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, Suspense } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,14 +26,31 @@ const studentTypes = [
   { value: "other", label: "Other Healthcare" },
 ]
 
-export default function SignUpPage() {
+// Map URL track params to student type values
+const trackToStudentType: Record<string, string> = {
+  emt: "emt_basic",
+  nursing: "nursing",
+  premed: "pre_med",
+  medschool: "medical_student",
+}
+
+function SignUpForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [studentType, setStudentType] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+
+  // Pre-select student type based on track query param
+  useEffect(() => {
+    const track = searchParams.get("track")
+    if (track && trackToStudentType[track]) {
+      setStudentType(trackToStudentType[track])
+    }
+  }, [searchParams])
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -63,7 +80,7 @@ export default function SignUpPage() {
     }
 
     setLoading(false)
-router.push("/auth/sign-up-success")
+    router.push("/auth/sign-up-success")
   }
 
   return (
@@ -193,5 +210,17 @@ router.push("/auth/sign-up-success")
         </GlassCard>
       </div>
     </div>
+  )
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    }>
+      <SignUpForm />
+    </Suspense>
   )
 }
