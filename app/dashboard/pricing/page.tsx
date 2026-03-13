@@ -30,6 +30,7 @@ const examPackages = [
     id: "nremt",
     name: "NREMT Certification Prep",
     price: 99,
+    stripeLink: "https://buy.stripe.com/....",
     duration: "8-12 weeks",
     icon: Ambulance,
     color: "from-orange-500/20 to-red-500/20",
@@ -45,6 +46,7 @@ const examPackages = [
     id: "paramedic",
     name: "Paramedic Certification Prep",
     price: 129,
+    stripeLink: "https://buy.stripe.com/....",
     duration: "12-16 weeks",
     icon: Ambulance,
     color: "from-red-500/20 to-orange-500/20",
@@ -60,6 +62,7 @@ const examPackages = [
     id: "nclex",
     name: "NCLEX Nursing Prep",
     price: 149,
+    stripeLink: "https://buy.stripe.com/....",
     duration: "10-14 weeks",
     icon: Hospital,
     color: "from-pink-500/20 to-rose-500/20",
@@ -75,6 +78,7 @@ const examPackages = [
     id: "mcat",
     name: "MCAT Foundations",
     price: 199,
+    stripeLink: "https://buy.stripe.com/....",
     duration: "16-20 weeks",
     icon: Microscope,
     color: "from-cyan-500/20 to-blue-500/20",
@@ -90,6 +94,7 @@ const examPackages = [
     id: "usmle",
     name: "USMLE Step 1 Prep",
     price: 249,
+    stripeLink: "https://buy.stripe.com/....",
     duration: "20-24 weeks",
     icon: GraduationCap,
     color: "from-purple-500/20 to-indigo-500/20",
@@ -176,8 +181,24 @@ const plans = [
 
 export default function PricingPage() {
   const { isPro, isLoading } = useSubscription()
+  
+const buyProduct = async (priceId: string) => {
+  const res = await fetch("/api/checkout", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ priceId }),
+  })
 
+  const data = await res.json()
+
+  if (data.url) {
+    window.location.href = data.url
+  }
+}
   return (
+    
     <div className="space-y-8 pt-12 lg:pt-0">
       {/* Header */}
       <div className="text-center max-w-2xl mx-auto">
@@ -331,12 +352,13 @@ export default function PricingPage() {
                 </div>
 
                 {/* CTA */}
-                <Button 
-                  className="w-full btn-hover-lift bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90"
-                  size="sm"
-                >
-                  Purchase <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
+               <Button
+  onClick={() => window.open(pkg.stripeLink)}
+  className="w-full btn-hover-lift bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90"
+  size="sm"
+>
+  Purchase <ChevronRight className="w-4 h-4 ml-1" />
+</Button>
               </GlassCard>
             )
           })}
