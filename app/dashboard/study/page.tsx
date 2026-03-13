@@ -420,7 +420,7 @@ export default function DailyStudyPage() {
       <UpgradeModal
         open={upgradeModalOpen}
         onOpenChange={setUpgradeModalOpen}
-        feature="daily study"
+        feature="flashcards"
       />
     </div>
   )
