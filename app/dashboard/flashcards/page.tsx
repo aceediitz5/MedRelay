@@ -65,7 +65,7 @@ export default async function FlashcardsPage() {
   const uncategorizedDecks = decks.filter(d => !d.topic)
 
   return (
-    <div className="space-y-8 pt-12 lg:pt-0">
+    <div className="space-y-8 pt-12 lg:pt-0 animate-fade-in-up">
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
@@ -190,13 +190,13 @@ function DeckCard({ deck }: { deck: {
           </div>
           <div className="h-2 bg-secondary rounded-full overflow-hidden">
             <div 
-              className="h-full bg-primary rounded-full transition-all duration-500"
+              className="h-full bg-gradient-to-r from-primary to-accent rounded-full animate-progress"
               style={{ width: `${progress}%` }}
             />
           </div>
         </div>
-        <Button variant="ghost" size="sm" className="w-full mt-4 text-primary">
-          Study Now <ArrowRight className="w-4 h-4 ml-1" />
+        <Button variant="ghost" size="sm" className="w-full mt-4 text-primary group">
+          Study Now <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
         </Button>
       </GlassCard>
     </Link>

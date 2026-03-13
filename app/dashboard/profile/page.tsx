@@ -110,7 +110,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-8 pt-12 lg:pt-0 max-w-2xl">
+    <div className="space-y-8 pt-12 lg:pt-0 max-w-2xl animate-fade-in-up">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-foreground">Profile</h1>
@@ -120,7 +120,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Profile Card */}
-      <GlassCard>
+      <GlassCard className="card-hover">
         <div className="flex items-center gap-4 mb-8 pb-6 border-b border-border">
           <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
             <User className="w-8 h-8 text-primary" />
@@ -140,14 +140,15 @@ export default function ProfilePage() {
               Full Name
             </label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" aria-hidden="true" />
               <Input
                 id="fullName"
                 type="text"
                 placeholder="Your full name"
                 value={profile.full_name || ""}
                 onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-                className="pl-10 bg-input border-border"
+                className="pl-10 h-12 bg-input border-border focus:ring-2 focus:ring-primary/50 transition-all"
+                autoComplete="name"
               />
             </div>
           </div>
@@ -158,16 +159,17 @@ export default function ProfilePage() {
               Email
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" aria-hidden="true" />
               <Input
                 id="email"
                 type="email"
                 value={user?.email || ""}
-                className="pl-10 bg-input border-border"
+                className="pl-10 h-12 bg-input border-border opacity-60"
                 disabled
+                aria-describedby="email-hint"
               />
             </div>
-            <p className="text-xs text-muted-foreground">Email cannot be changed</p>
+            <p id="email-hint" className="text-xs text-muted-foreground">Email cannot be changed</p>
           </div>
 
           {/* Student Type */}
@@ -179,7 +181,7 @@ export default function ProfilePage() {
               value={profile.student_type || ""} 
               onValueChange={(value) => setProfile({ ...profile, student_type: value })}
             >
-              <SelectTrigger className="bg-input border-border">
+              <SelectTrigger className="h-12 bg-input border-border focus:ring-2 focus:ring-primary/50 transition-all">
                 <SelectValue placeholder="Select your track" />
               </SelectTrigger>
               <SelectContent>
@@ -198,14 +200,15 @@ export default function ProfilePage() {
               Institution (Optional)
             </label>
             <div className="relative">
-              <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" aria-hidden="true" />
               <Input
                 id="institution"
                 type="text"
                 placeholder="Your school or program"
                 value={profile.institution || ""}
                 onChange={(e) => setProfile({ ...profile, institution: e.target.value })}
-                className="pl-10 bg-input border-border"
+                className="pl-10 h-12 bg-input border-border focus:ring-2 focus:ring-primary/50 transition-all"
+                autoComplete="organization"
               />
             </div>
           </div>
@@ -223,7 +226,7 @@ export default function ProfilePage() {
               max={2035}
               value={profile.graduation_year || ""}
               onChange={(e) => setProfile({ ...profile, graduation_year: e.target.value ? parseInt(e.target.value) : null })}
-              className="bg-input border-border"
+              className="h-12 bg-input border-border focus:ring-2 focus:ring-primary/50 transition-all"
             />
           </div>
 
@@ -232,17 +235,20 @@ export default function ProfilePage() {
             <Button
               type="submit"
               disabled={saving}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              className="h-12 px-6 bg-primary text-primary-foreground hover:bg-primary/90 btn-hover-lift"
             >
               {saving ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : saved ? (
-                <CheckCircle className="w-4 h-4 mr-2" />
+                <CheckCircle className="w-4 h-4 mr-2 text-green-400" />
               ) : (
                 <Save className="w-4 h-4 mr-2" />
               )}
               {saving ? "Saving..." : saved ? "Saved!" : "Save Changes"}
             </Button>
+            {saved && (
+              <span className="text-sm text-green-400 animate-fade-in">Changes saved successfully</span>
+            )}
           </div>
         </form>
       </GlassCard>

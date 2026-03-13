@@ -43,7 +43,7 @@ export default async function SimulationsPage() {
   const inProgress = simulations.filter(s => s.progress && !s.progress.completed).length
 
   return (
-    <div className="space-y-8 pt-12 lg:pt-0">
+    <div className="space-y-8 pt-12 lg:pt-0 animate-fade-in-up">
       {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
@@ -162,15 +162,15 @@ function SimulationCard({ simulation }: { simulation: {
 
       <Link href={`/dashboard/simulations/${simulation.id}`} className="mt-auto">
         <Button 
-          variant={status === "completed" ? "outline" : "default"} 
+          variant={isCompleted ? "outline" : "default"} 
           className={cn(
-            "w-full",
-            status !== "completed" && "bg-primary text-primary-foreground hover:bg-primary/90"
+            "w-full btn-hover-lift",
+            !isCompleted && "bg-primary text-primary-foreground hover:bg-primary/90"
           )}
         >
-          {status === "completed" ? (
+          {isCompleted ? (
             <>Review Case</>
-          ) : status === "in_progress" ? (
+          ) : isInProgress ? (
             <><Play className="w-4 h-4 mr-2" />Continue</>
           ) : (
             <><Play className="w-4 h-4 mr-2" />Start Case</>

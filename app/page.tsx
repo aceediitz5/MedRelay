@@ -24,6 +24,9 @@ import {
   Brain,
   Pill,
   ClipboardList,
+  Mail,
+  Send,
+  MessageSquare,
 } from "lucide-react"
 
 // Expanded medical topics - comprehensive healthcare coverage (topic-focused, no body part icons)
@@ -220,11 +223,14 @@ export default function LandingPage() {
               <span className="text-xl font-bold text-white">MedRelay</span>
             </Link>
             <div className="flex items-center gap-4">
+              <a href="#contact" className="text-gray-400 hover:text-white transition-colors text-sm font-medium hidden sm:block">
+                Contact
+              </a>
               <Link href="/auth/login">
                 <Button variant="ghost" className="text-gray-300 hover:text-white hover:bg-white/5">Sign In</Button>
               </Link>
               <Link href="/auth/sign-up">
-                <Button className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-400 hover:to-blue-400 border-0">
+                <Button className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-400 hover:to-blue-400 border-0 btn-hover-lift">
                   Get Started
                 </Button>
               </Link>
@@ -595,18 +601,157 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Contact Us Section */}
+      <section id="contact" className="py-24 px-4 sm:px-6 lg:px-8 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-950/5 to-transparent" />
+        <div className="max-w-4xl mx-auto relative">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-medium mb-6">
+              <MessageSquare className="w-4 h-4" />
+              <span>Get in Touch</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+              Contact Us
+            </h2>
+            <p className="text-lg text-gray-400 max-w-xl mx-auto">
+              Have questions about MedRelay? Want to partner with us? {"We'd"} love to hear from you.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Contact Form */}
+            <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-8">
+              <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+                <Send className="w-5 h-5 text-cyan-400" />
+                Send us a Message
+              </h3>
+              <form
+                action={`https://formsubmit.co/medrelay.help@gmail.com`}
+                method="POST"
+                className="space-y-5"
+              >
+                <input type="hidden" name="_subject" value="New MedRelay Contact Form Submission" />
+                <input type="hidden" name="_captcha" value="false" />
+                <input type="hidden" name="_template" value="table" />
+                
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
+                    Your Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    required
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all input-focus-glow"
+                    placeholder="John Doe"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all input-focus-glow"
+                    placeholder="john@example.com"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-2">
+                    Message
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    rows={4}
+                    required
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all resize-none input-focus-glow"
+                    placeholder="How can we help you?"
+                  />
+                </div>
+                
+                <Button
+                  type="submit"
+                  className="w-full h-12 bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-400 hover:to-blue-400 btn-hover-lift"
+                >
+                  Send Message <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+              </form>
+            </div>
+
+            {/* Direct Contact Info */}
+            <div className="space-y-6">
+              <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-8">
+                <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+                  <Mail className="w-5 h-5 text-cyan-400" />
+                  Direct Contact
+                </h3>
+                <p className="text-gray-400 mb-4">
+                  Prefer to reach out directly? Send us an email and {"we'll"} get back to you within 24 hours.
+                </p>
+                <a
+                  href="mailto:medrelay.help@gmail.com"
+                  className="inline-flex items-center gap-3 px-6 py-4 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20 transition-all group"
+                >
+                  <Mail className="w-5 h-5" />
+                  <span className="font-medium">medrelay.help@gmail.com</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </a>
+              </div>
+
+              <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/5 border border-cyan-500/20 rounded-2xl p-8">
+                <h4 className="text-lg font-semibold text-white mb-3">Quick Response Time</h4>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  Our support team typically responds within 24 hours during business days. For urgent matters, 
+                  please include {"'URGENT'"} in your subject line.
+                </p>
+                <div className="mt-4 flex items-center gap-2 text-sm text-cyan-400">
+                  <Activity className="w-4 h-4" />
+                  <span>Average response: 12 hours</span>
+                </div>
+              </div>
+
+              <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6">
+                <h4 className="text-sm font-medium text-gray-400 mb-3">We can help with:</h4>
+                <ul className="space-y-2">
+                  {["Technical support", "Account & billing", "Partnership inquiries", "Feature requests", "Bug reports"].map((item) => (
+                    <li key={item} className="flex items-center gap-2 text-gray-300 text-sm">
+                      <CheckCircle className="w-4 h-4 text-cyan-400" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-white/5">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 flex items-center justify-center">
-              <Stethoscope className="w-4 h-4 text-cyan-400" />
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 flex items-center justify-center">
+                <Stethoscope className="w-4 h-4 text-cyan-400" />
+              </div>
+              <span className="font-semibold text-white">MedRelay</span>
             </div>
-            <span className="font-semibold text-white">MedRelay</span>
+            <div className="flex items-center gap-6 text-sm text-gray-500">
+              <a href="#contact" className="hover:text-cyan-400 transition-colors">Contact</a>
+              <a href="#pricing" className="hover:text-cyan-400 transition-colors">Pricing</a>
+              <a href="mailto:medrelay.help@gmail.com" className="hover:text-cyan-400 transition-colors">Support</a>
+            </div>
+            <p className="text-sm text-gray-500">
+              2024 MedRelay. Built for the future of medical education.
+            </p>
           </div>
-          <p className="text-sm text-gray-500">
-            2024 MedRelay. Built for the future of medical education.
-          </p>
         </div>
       </footer>
 
