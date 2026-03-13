@@ -11,7 +11,6 @@ import {
   User,
   Settings,
   Crown,
-  GraduationCap,
   LogOut,
   Menu,
   X,
@@ -45,7 +44,6 @@ const navItems = [
 ]
 
 const bottomItems = [
-  { href: "/dashboard/instructor", label: "Instructor", icon: GraduationCap },
   { href: "/dashboard/profile", label: "Profile", icon: User },
   { href: "/dashboard/pricing", label: "Pricing", icon: Crown },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },

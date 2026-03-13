@@ -134,8 +134,8 @@ const testimonials = [
   },
   {
     name: "Dr. Emily Chen",
-    role: "EMS Instructor",
-    content: "Finally a platform that lets me track my students' progress and customize their learning path.",
+    role: "Emergency Medicine Resident",
+    content: "Finally a platform that makes medical education adaptive and personalized to my learning style.",
     rating: 5,
   },
 ]
@@ -153,7 +153,6 @@ const pricingPlans = [
       { text: "2 topics unlocked", included: true },
       { text: "Case simulations", included: false },
       { text: "All 20+ topics", included: false },
-      { text: "Instructor tools", included: false },
       { text: "Priority support", included: false },
     ],
     cta: "Start Free",
