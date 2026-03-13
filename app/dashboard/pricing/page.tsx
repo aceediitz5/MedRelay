@@ -1,6 +1,6 @@
 "use client"
 
-import { Fragment } from "react"
+import { Fragment, useEffect, useState } from "react"
 import { GlassCard } from "@/components/ui/glass-card"
 import { Button } from "@/components/ui/button"
 import { useSubscription } from "@/lib/subscription/context"
@@ -24,17 +24,133 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-// Individual exam prep packages
+// === Exam packages with Stripe price IDs ===
 const examPackages = [
-  {
-    id: "nremt",
-    name: "NREMT Certification Prep",
-    price: 99,
-    stripePriceId: "price_1TAcZiHTnaP0wMR8i8gXGLS1",
-    duration: "8-12 weeks",
-    icon: Ambulance,
-    color: "from-orange-500/20 to-red-500/20",
-    borderColor: "border-orange-500/30",
+  { id: "nremt", name: "NREMT Certification Prep", price: 99, stripePriceId: "price_1TAcZiHTnaP0wMR8i8gXGLS1", icon: Ambulance, color: "from-orange-500/20 to-red-500/20", borderColor: "border-orange-500/30", iconColor: "text-orange-400", duration: "8-12 weeks", flashcards: 150, questions: 200, simulations: 15, practiceExams: 3 },
+  { id: "paramedic", name: "Paramedic Certification Prep", price: 129, stripePriceId: "price_1TAcb1HTnaP0wMR8B1kztL3M", icon: Ambulance, color: "from-red-500/20 to-orange-500/20", borderColor: "border-red-500/30", iconColor: "text-red-400", duration: "12-16 weeks", flashcards: 200, questions: 280, simulations: 20, practiceExams: 4 },
+  { id: "nclex", name: "NCLEX Nursing Prep", price: 149, stripePriceId: "price_1TAcbMHTnaP0wMR8llyNupdV", icon: Hospital, color: "from-pink-500/20 to-rose-500/20", borderColor: "border-pink-500/30", iconColor: "text-pink-400", duration: "10-14 weeks", flashcards: 250, questions: 350, simulations: 18, practiceExams: 5 },
+  { id: "mcat", name: "MCAT Foundations", price: 199, stripePriceId: "price_1TAcbjHTnaP0wMR8vB1uQ9ZQ", icon: Microscope, color: "from-cyan-500/20 to-blue-500/20", borderColor: "border-cyan-500/30", iconColor: "text-cyan-400", duration: "16-20 weeks", flashcards: 300, questions: 400, simulations: 12, practiceExams: 6 },
+  { id: "usmle", name: "USMLE Step 1 Prep", price: 249, stripePriceId: "price_1TAccWHTnaP0wMR8CiF5Z3Tk", icon: GraduationCap, color: "from-purple-500/20 to-indigo-500/20", borderColor: "border-purple-500/30", iconColor: "text-purple-400", duration: "20-24 weeks", flashcards: 350, questions: 500, simulations: 25, practiceExams: 8 },
+]
+
+// === Subscription plans ===
+const plans = [
+  { name: "Free", price: "$0", period: "forever", icon: BookOpen, cta: "Current Plan", current: true, popular: false },
+  { name: "MedRelay Pro", price: "$12", period: "/month", icon: Crown, cta: "Upgrade to Pro", current: false, popular: true, stripePriceId: "price_1TAcXRHTnaP0wMR8HKQROxnf" },
+]
+
+export default function PricingPage() {
+  const { isPro: subscriptionStatus, isLoading } = useSubscription()
+  const [purchasedExams, setPurchasedExams] = useState<string[]>([])
+
+  // Fetch purchased exam packages for this user
+  useEffect(() => {
+    async function fetchPurchases() {
+      try {
+        const res = await fetch("/api/user-purchases")
+        const data = await res.json()
+        setPurchasedExams(data.purchasedExamIds || [])
+      } catch (err) {
+        console.error("Failed to fetch user purchases", err)
+      }
+    }
+    fetchPurchases()
+  }, [])
+
+  const buySubscription = async (priceId: string) => {
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ priceId, type: "subscription" }),
+    })
+    const data = await res.json()
+    if (data.url) window.location.href = data.url
+  }
+
+  const buyExam = async (priceId: string) => {
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ priceId, type: "payment" }),
+    })
+    const data = await res.json()
+    if (data.url) window.location.href = data.url
+  }
+
+  return (
+    <div className="space-y-8 pt-12 lg:pt-0">
+      {/* Subscription Plans */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        {plans.map((plan) => {
+          const isCurrent = plan.name === "MedRelay Pro" ? subscriptionStatus : plan.current
+          const Icon = plan.icon
+          return (
+            <GlassCard key={plan.name} className={cn("flex flex-col relative", plan.popular && "ring-2 ring-primary")} glow={plan.popular}>
+              {plan.popular && <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium flex items-center gap-1"><Star className="w-3 h-3" />Most Popular</div>}
+
+              <div className="mb-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", plan.popular ? "bg-warning/20" : "bg-secondary")}>
+                    <Icon className={cn("w-5 h-5", plan.popular ? "text-warning" : "text-muted-foreground")} />
+                  </div>
+                  <h2 className="text-xl font-semibold text-foreground">{plan.name}</h2>
+                </div>
+                <div className="mt-2">
+                  <span className="text-4xl font-bold text-foreground">{plan.price}</span>
+                  <span className="text-muted-foreground">{plan.period}</span>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => buySubscription(plan.stripePriceId!)}
+                disabled={isCurrent}
+                className={cn(
+                  "w-full",
+                  isCurrent ? "bg-secondary text-secondary-foreground" : plan.popular ? "bg-primary text-primary-foreground hover:bg-primary/90 glow-sm" : "bg-secondary text-foreground hover:bg-secondary/80"
+                )}
+              >
+                {plan.popular && !isCurrent && <Zap className="w-4 h-4 mr-2" />}
+                {isCurrent ? "Current Plan" : plan.cta}
+              </Button>
+            </GlassCard>
+          )
+        })}
+      </div>
+
+      {/* Exam Packages */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 max-w-6xl mx-auto">
+        {examPackages.map((pkg) => {
+          const Icon = pkg.icon
+          const isPurchased = purchasedExams.includes(pkg.id)
+          return (
+            <GlassCard key={pkg.id} className={cn("flex flex-col relative transition-all duration-300 hover:scale-[1.02] card-hover", `border ${pkg.borderColor}`)}>
+              <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-gradient-to-br", pkg.color)}>
+                <Icon className={cn("w-6 h-6", pkg.iconColor)} />
+              </div>
+              <h3 className="font-semibold text-foreground text-sm mb-1">{pkg.name}</h3>
+              <div className="mb-3">
+                <span className="text-3xl font-bold text-foreground">${pkg.price}</span>
+                <span className="text-xs text-muted-foreground ml-1">one-time</span>
+              </div>
+              <div className="flex-1 mb-4 text-xs text-muted-foreground">{pkg.duration}</div>
+
+              <Button
+                onClick={() => buyExam(pkg.stripePriceId)}
+                disabled={isPurchased}
+                className={cn(
+                  "w-full btn-hover-lift bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90",
+                  isPurchased && "opacity-50 cursor-not-allowed"
+                )}
+              >
+                {isPurchased ? "Purchased" : "Purchase"} <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            </GlassCard>
+          )
+        })}
+      </div>
+    </div>
+  )
+}    borderColor: "border-orange-500/30",
     iconColor: "text-orange-400",
     flashcards: 150,
     questions: 200,
