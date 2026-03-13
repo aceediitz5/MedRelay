@@ -66,17 +66,15 @@ const confidenceButtons = [
 
 // SM-2 Spaced Repetition Algorithm
 function calculateSM2(quality: number, easeFactor: number, interval: number, repetitions: number) {
-  // quality: 0-5 (we map our 1-4 to 0-5)
   const q = Math.max(0, Math.min(5, (quality - 1) * 1.67))
   
   let newEF = easeFactor + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02))
-  newEF = Math.max(1.3, newEF) // minimum ease factor
+  newEF = Math.max(1.3, newEF)
   
   let newInterval: number
   let newReps: number
   
   if (q < 3) {
-    // Failed - reset
     newInterval = 1
     newReps = 0
   } else {
@@ -93,12 +91,11 @@ function calculateSM2(quality: number, easeFactor: number, interval: number, rep
   return { easeFactor: newEF, interval: newInterval, repetitions: newReps }
 }
 
-// XP rewards based on confidence
 const XP_REWARDS = {
-  1: 5,   // Again - still learning
-  2: 10,  // Hard - some effort
-  3: 15,  // Good - solid recall
-  4: 20,  // Easy - perfect recall
+  1: 5,
+  2: 10,
+  3: 15,
+  4: 20,
 }
 
 export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
@@ -124,7 +121,6 @@ export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
   const handleConfidence = useCallback(async (level: number) => {
     if (!currentCard) return
 
-    // Check if user has reached their daily limit
     if (!canUseFlashcards) {
       setUpgradeModalOpen(true)
       return
@@ -133,23 +129,19 @@ export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
     const supabase = createClient()
     const now = new Date()
     
-    // Get current progress for SM-2 calculation
     const currentEF = (currentCard.progress as any)?.ease_factor || 2.5
     const currentInterval = (currentCard.progress as any)?.interval_days || 0
     const currentReps = (currentCard.progress as any)?.repetitions || 0
     
-    // Calculate new SM-2 values
     const { easeFactor, interval, repetitions } = calculateSM2(level, currentEF, currentInterval, currentReps)
     const nextReview = new Date(now.getTime() + interval * 24 * 60 * 60 * 1000)
 
-    // Calculate XP earned
     const xpEarned = XP_REWARDS[level as keyof typeof XP_REWARDS] || 10
     setLastXpGained(xpEarned)
     setSessionXp(prev => prev + xpEarned)
     setShowXpPopup(true)
     setTimeout(() => setShowXpPopup(false), 1500)
 
-    // Upsert progress with SM-2 fields
     await supabase
       .from("user_flashcard_progress")
       .upsert({
@@ -164,7 +156,6 @@ export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
         repetitions: repetitions,
       }, { onConflict: "user_id,flashcard_id" })
 
-    // Update daily study log
     const today = now.toISOString().split("T")[0]
     const { data: existingLog } = await supabase
       .from("daily_study_logs")
@@ -192,13 +183,9 @@ export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
         })
     }
 
-    // Note: XP is tracked in daily_study_logs, profile total_xp can be calculated from logs
-
-    // Mark as reviewed and move to next card
     setReviewedCards(prev => new Set([...prev, currentCard.id]))
     setIsFlipped(false)
 
-    // Refresh usage to update the counter
     await refreshUsage()
 
     if (currentIndex < cards.length - 1) {
@@ -261,7 +248,6 @@ export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
             {"You've reviewed all"} {cards.length} cards in this deck. Great work!
           </p>
           
-          {/* XP Summary */}
           <div className="flex items-center justify-center gap-6 mb-8">
             <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
               <Zap className="w-5 h-5 text-yellow-400" />
@@ -291,167 +277,166 @@ export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
 
   return (
     <>
-    <div className="space-y-6 pt-12 lg:pt-0 max-w-3xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <Link href="/dashboard/flashcards" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-          <ArrowLeft className="w-4 h-4" />
-          Back to Decks
-        </Link>
-        <span className="text-sm text-muted-foreground">
-          {currentIndex + 1} / {cards.length}
-        </span>
-      </div>
+      <div className="space-y-6 pt-12 lg:pt-0 max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <Link href="/dashboard/flashcards" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Decks
+          </Link>
+          <span className="text-sm text-muted-foreground">
+            {currentIndex + 1} / {cards.length}
+          </span>
+        </div>
 
-      {/* Daily Usage Indicator for Free Users */}
-      {!isPro && (
-        <div className="p-4 rounded-lg bg-secondary/50 border border-border">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-foreground flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-primary" />
-              Daily Flashcard Limit
-            </span>
-            {!canUseFlashcards && (
-              <span className="text-xs px-2 py-1 rounded-full bg-warning/20 text-warning flex items-center gap-1">
-                <Lock className="w-3 h-3" />
-                Limit Reached
+        {/* Daily Usage Indicator for Free Users */}
+        {!isPro && (
+          <div className="p-4 rounded-lg bg-secondary/50 border border-border">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-foreground flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-primary" />
+                Daily Flashcard Limit
               </span>
+              {!canUseFlashcards && (
+                <span className="text-xs px-2 py-1 rounded-full bg-warning/20 text-warning flex items-center gap-1">
+                  <Lock className="w-3 h-3" />
+                  Limit Reached
+                </span>
+              )}
+            </div>
+            <UsageIndicator
+              used={dailyUsage.flashcardsReviewed}
+              limit={20}
+              label="Cards reviewed today"
+              isPro={isPro}
+            />
+            {!canUseFlashcards && (
+              <Button
+                onClick={() => setUpgradeModalOpen(true)}
+                size="sm"
+                className="mt-3 w-full bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                <Crown className="w-4 h-4 mr-2" />
+                Upgrade for Unlimited
+              </Button>
             )}
           </div>
-          <UsageIndicator
-            used={dailyUsage.flashcardsReviewed}
-            limit={20}
-            label="Cards reviewed today"
-            isPro={isPro}
-          />
-          {!canUseFlashcards && (
-            <Button
-              onClick={() => setUpgradeModalOpen(true)}
-              size="sm"
-              className="mt-3 w-full bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              <Crown className="w-4 h-4 mr-2" />
-              Upgrade for Unlimited
-            </Button>
-          )}
-        </div>
-      )}
+        )}
 
-      {/* Deck title and progress */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          {deck.topic && <span className="text-xl">{deck.topic.icon || "📚"}</span>}
-          <h1 className="text-2xl font-bold text-foreground">{deck.title}</h1>
-        </div>
-        <Progress value={progress} className="h-2" />
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">{reviewedCards.size} of {cards.length} reviewed this session</p>
-          {sessionXp > 0 && (
-            <div className="flex items-center gap-2 text-sm">
-              <Zap className="w-4 h-4 text-yellow-400" />
-              <span className="text-yellow-400 font-medium">+{sessionXp} XP this session</span>
-            </div>
-          )}
-        </div>
-      </div>
-      
-      {/* XP Popup Animation */}
-      {showXpPopup && (
-        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none">
-          <div className="animate-bounce flex items-center gap-2 px-6 py-3 rounded-full bg-yellow-500/20 border border-yellow-500/30 backdrop-blur-sm">
-            <Zap className="w-6 h-6 text-yellow-400" />
-            <span className="text-2xl font-bold text-yellow-400">+{lastXpGained} XP</span>
-          </div>
-        </div>
-      )}
-
-      {/* Flashcard */}
-      <div 
-        className="relative h-80 cursor-pointer perspective-1000"
-        onClick={handleFlip}
-      >
-        <div className={cn(
-          "absolute inset-0 transition-transform duration-500 transform-style-preserve-3d",
-          isFlipped && "rotate-y-180"
-        )}>
-          {/* Front */}
-          <GlassCard className={cn(
-            "absolute inset-0 flex flex-col items-center justify-center p-8 backface-hidden",
-            isFlipped && "invisible"
-          )}>
-            <p className="text-xl text-foreground text-center whitespace-pre-wrap">
-              {currentCard.front_content}
-            </p>
-            <div className="absolute bottom-4 flex items-center gap-2 text-muted-foreground text-sm">
-              <Eye className="w-4 h-4" />
-              Tap to reveal answer
-            </div>
-          </GlassCard>
-
-          {/* Back */}
-          <GlassCard className={cn(
-            "absolute inset-0 flex flex-col items-center justify-center p-8 backface-hidden rotate-y-180",
-            !isFlipped && "invisible"
-          )} glow>
-            <p className="text-xl text-foreground text-center whitespace-pre-wrap">
-              {currentCard.back_content}
-            </p>
-          </GlassCard>
-        </div>
-      </div>
-
-      {/* Navigation / Confidence buttons */}
-      {!isFlipped ? (
-        <div className="flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handlePrevious}
-            disabled={currentIndex === 0}
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
-          <Button
-            onClick={handleFlip}
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            Show Answer
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleNext}
-            disabled={currentIndex === cards.length - 1}
-          >
-            <ChevronRight className="w-5 h-5" />
-          </Button>
-        </div>
-      ) : (
+        {/* Deck title and progress */}
         <div className="space-y-3">
-          <p className="text-center text-sm text-muted-foreground">How well did you know this?</p>
-          <div className="grid grid-cols-4 gap-2">
-            {confidenceButtons.map((btn) => (
-              <Button
-                key={btn.level}
-                variant="ghost"
-                className={cn("flex flex-col items-center gap-1 h-auto py-3", btn.color)}
-                onClick={() => handleConfidence(btn.level)}
-              >
-                <btn.icon className="w-5 h-5" />
-                <span className="text-xs">{btn.label}</span>
-              </Button>
-            ))}
+          <div className="flex items-center gap-2">
+            {deck.topic && <span className="text-xl">{deck.topic.icon || "📚"}</span>}
+            <h1 className="text-2xl font-bold text-foreground">{deck.title}</h1>
+          </div>
+          <Progress value={progress} className="h-2" />
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">{reviewedCards.size} of {cards.length} reviewed this session</p>
+            {sessionXp > 0 && (
+              <div className="flex items-center gap-2 text-sm">
+                <Zap className="w-4 h-4 text-yellow-400" />
+                <span className="text-yellow-400 font-medium">+{sessionXp} XP this session</span>
+              </div>
+            )}
           </div>
         </div>
-)}
+
+        {/* XP Popup Animation */}
+        {showXpPopup && (
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none">
+            <div className="animate-bounce flex items-center gap-2 px-6 py-3 rounded-full bg-yellow-500/20 border border-yellow-500/30 backdrop-blur-sm">
+              <Zap className="w-6 h-6 text-yellow-400" />
+              <span className="text-2xl font-bold text-yellow-400">+{lastXpGained} XP</span>
+            </div>
+          </div>
+        )}
+
+        {/* Flashcard */}
+        <div
+          className="relative h-80 cursor-pointer perspective-1000"
+          onClick={handleFlip}
+        >
+          <div className={cn(
+            "absolute inset-0 transition-transform duration-500 transform-style-preserve-3d",
+            isFlipped && "rotate-y-180"
+          )}>
+            {/* Front */}
+            <GlassCard className={cn(
+              "absolute inset-0 flex flex-col items-center justify-center p-8 backface-hidden",
+              isFlipped && "invisible"
+            )}>
+              <p className="text-xl text-foreground text-center whitespace-pre-wrap">
+                {currentCard.front_content}
+              </p>
+              <div className="absolute bottom-4 flex items-center gap-2 text-muted-foreground text-sm">
+                <Eye className="w-4 h-4" />
+                Tap to reveal answer
+              </div>
+            </GlassCard>
+
+            {/* Back */}
+            <GlassCard className={cn(
+              "absolute inset-0 flex flex-col items-center justify-center p-8 backface-hidden rotate-y-180",
+              !isFlipped && "invisible"
+            )} glow>
+              <p className="text-xl text-foreground text-center whitespace-pre-wrap">
+                {currentCard.back_content}
+              </p>
+            </GlassCard>
+          </div>
+        </div>
+
+        {/* Navigation / Confidence buttons */}
+        {!isFlipped ? (
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handlePrevious}
+              disabled={currentIndex === 0}
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+            <Button
+              onClick={handleFlip}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Show Answer
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleNext}
+              disabled={currentIndex === cards.length - 1}
+            >
+              <ChevronRight className="w-5 h-5" />
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-center text-sm text-muted-foreground">How well did you know this?</p>
+            <div className="grid grid-cols-4 gap-2">
+              {confidenceButtons.map((btn) => (
+                <Button
+                  key={btn.level}
+                  variant="ghost"
+                  className={cn("flex flex-col items-center gap-1 h-auto py-3", btn.color)}
+                  onClick={() => handleConfidence(btn.level)}
+                >
+                  <btn.icon className="w-5 h-5" />
+                  <span className="text-xs">{btn.label}</span>
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
-    </div>
-    
-    <UpgradeModal
-      open={upgradeModalOpen}
-      onOpenChange={setUpgradeModalOpen}
-      feature="flashcards"
-    />
+
+      <UpgradeModal
+        open={upgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
+        feature="flashcards"
+      />
     </>
   )
 }
