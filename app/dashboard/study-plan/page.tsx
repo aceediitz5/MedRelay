@@ -34,7 +34,7 @@ async function getStudyPlanData(userId: string) {
     .from("user_flashcard_progress")
     .select(`
       *,
-      flashcard:flashcards(id, question, answer, deck_id, topic_id, topics(name, icon))
+      flashcard:flashcards(id, question, answer, deck_id, topic_id)
     `)
     .eq("user_id", userId)
     .lte("next_review_date", today)
@@ -48,11 +48,17 @@ async function getStudyPlanData(userId: string) {
 
   const reviewedFlashcardIds = reviewedIds?.map(r => r.flashcard_id) || []
   
-  const { data: newFlashcards } = await supabase
+  let newFlashcardsQuery = supabase
     .from("flashcards")
-    .select("id, question, topic_id, topics(name, icon)")
-    .not("id", "in", reviewedFlashcardIds.length > 0 ? `(${reviewedFlashcardIds.join(",")})` : "()")
+    .select("id, question, topic_id")
     .limit(10)
+  
+  if (reviewedFlashcardIds.length > 0) {
+    // Only add NOT IN filter if there are reviewed cards
+    newFlashcardsQuery = newFlashcardsQuery.not("id", "in", `(${reviewedFlashcardIds.join(",")})`)
+  }
+  
+  const { data: newFlashcards } = await newFlashcardsQuery
 
   // Get recommended questions based on weak topics
   const { data: questionProgress } = await supabase
@@ -77,12 +83,17 @@ async function getStudyPlanData(userId: string) {
     .filter(([, stats]) => stats.total >= 3 && (stats.correct / stats.total) < 0.7)
     .map(([id]) => id)
 
-  // Get questions from weak topics
-  const { data: recommendedQuestions } = await supabase
+  // Get questions from weak topics or random if no weak topics
+  let recommendedQuestionsQuery = supabase
     .from("questions")
-    .select("id, question_text, topic_id, difficulty_level, topics(name, icon)")
-    .in("topic_id", weakTopicIds.length > 0 ? weakTopicIds : [""])
+    .select("id, question_text, topic_id, difficulty_level")
     .limit(10)
+  
+  if (weakTopicIds.length > 0) {
+    recommendedQuestionsQuery = recommendedQuestionsQuery.in("topic_id", weakTopicIds)
+  }
+  
+  const { data: recommendedQuestions } = await recommendedQuestionsQuery
 
   // Get available case simulations
   const { data: completedCases } = await supabase
@@ -93,11 +104,16 @@ async function getStudyPlanData(userId: string) {
 
   const completedCaseIds = completedCases?.map(c => c.case_id) || []
 
-  const { data: availableCases } = await supabase
+  let availableCasesQuery = supabase
     .from("case_simulations")
-    .select("id, title, difficulty, topic_id, topics(name, icon)")
-    .not("id", "in", completedCaseIds.length > 0 ? `(${completedCaseIds.join(",")})` : "()")
+    .select("id, title, difficulty, topic_id")
     .limit(5)
+  
+  if (completedCaseIds.length > 0) {
+    availableCasesQuery = availableCasesQuery.not("id", "in", `(${completedCaseIds.join(",")})`)
+  }
+  
+  const { data: availableCases } = await availableCasesQuery
 
   // Get today's study log
   const { data: todayLog } = await supabase

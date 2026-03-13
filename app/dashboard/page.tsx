@@ -95,10 +95,13 @@ async function getDashboardData(userId: string) {
   const xpNeeded = xpForNextLevel - xpForCurrentLevel
   const levelProgress = Math.round((xpProgress / xpNeeded) * 100)
 
-  // Calculate study time this week
+  // Calculate study time this week (estimate based on activity)
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
   const weeklyLogs = studyLogs?.filter(log => log.study_date >= weekAgo) || []
-  const studyMinutes = weeklyLogs.reduce((acc, log) => acc + (log.minutes_studied || 0), 0)
+  // Estimate: 1 min per flashcard, 2 min per question, 10 min per case
+  const studyMinutes = weeklyLogs.reduce((acc, log) => {
+    return acc + ((log.flashcards_reviewed || 0) * 1) + ((log.questions_answered || 0) * 2) + ((log.cases_completed || 0) * 10)
+  }, 0)
   const weeklyXp = weeklyLogs.reduce((acc, log) => acc + (log.xp_earned || 0), 0)
 
   // Today's progress

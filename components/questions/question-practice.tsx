@@ -101,15 +101,16 @@ export function QuestionPractice({ questions, userId, mode }: QuestionPracticePr
     
     // Save progress
     const supabase = createClient()
+    const options = ["a", "b", "c", "d"]
     await supabase
       .from("user_question_progress")
       .upsert({
         user_id: userId,
         question_id: currentQuestion.id,
         is_correct: isCorrect,
-        selected_answer: selectedAnswer,
+        selected_answer: options[selectedAnswer] || "a",
         answered_at: new Date().toISOString(),
-      })
+      }, { onConflict: "user_id,question_id" })
 
     // Update daily log
     const today = new Date().toISOString().split("T")[0]
@@ -125,9 +126,7 @@ export function QuestionPractice({ questions, userId, mode }: QuestionPracticePr
         .from("daily_study_logs")
         .update({
           questions_answered: (existingLog.questions_answered || 0) + 1,
-          questions_correct: isCorrect ? (existingLog.questions_correct || 0) + 1 : existingLog.questions_correct,
           xp_earned: (existingLog.xp_earned || 0) + xpEarned,
-          minutes_studied: (existingLog.minutes_studied || 0) + 2,
         })
         .eq("id", existingLog.id)
     } else {
@@ -137,14 +136,11 @@ export function QuestionPractice({ questions, userId, mode }: QuestionPracticePr
           user_id: userId,
           study_date: today,
           questions_answered: 1,
-          questions_correct: isCorrect ? 1 : 0,
           xp_earned: xpEarned,
-          minutes_studied: 2,
         })
     }
 
-    // Update user's total XP
-    await supabase.rpc("add_xp", { user_id_param: userId, xp_amount: xpEarned })
+    // Note: XP is tracked in daily_study_logs
     
     // Refresh usage counters
     await refreshUsage()

@@ -17,10 +17,10 @@ async function getSimulation(simId: string, userId: string) {
   if (!simulation) return null
 
   const { data: progress } = await supabase
-    .from("user_simulation_progress")
+    .from("user_case_progress")
     .select("*")
     .eq("user_id", userId)
-    .eq("simulation_id", simId)
+    .eq("case_id", simId)
     .single()
 
   return {

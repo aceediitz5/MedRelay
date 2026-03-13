@@ -27,7 +27,7 @@ async function getProgressData(userId: string) {
   // Get user profile with XP
   const { data: profile } = await supabase
     .from("profiles")
-    .select("total_xp, level, current_streak, longest_streak")
+    .select("total_xp, level, study_streak, longest_streak")
     .eq("id", userId)
     .single()
 
@@ -43,7 +43,7 @@ async function getProgressData(userId: string) {
   // Get flashcard progress
   const { data: flashcardProgress } = await supabase
     .from("user_flashcard_progress")
-    .select("confidence_level, last_reviewed, ease_factor, interval_days")
+    .select("difficulty, last_reviewed_at, ease_factor, interval_days")
     .eq("user_id", userId)
 
   // Get question progress
@@ -54,8 +54,8 @@ async function getProgressData(userId: string) {
 
   // Get simulation progress
   const { data: simProgress } = await supabase
-    .from("user_simulation_progress")
-    .select("status, score, completed_at")
+    .from("user_case_progress")
+    .select("completed, score, completed_at")
     .eq("user_id", userId)
 
   // Get user achievements
@@ -71,7 +71,7 @@ async function getProgressData(userId: string) {
     .order("xp_reward", { ascending: true })
 
   // Calculate streak from profile or logs
-  let streak = profile?.current_streak || 0
+  let streak = profile?.study_streak || 0
   let longestStreak = profile?.longest_streak || 0
   
   // Fallback streak calculation if not in profile
@@ -99,21 +99,24 @@ async function getProgressData(userId: string) {
   const totalXp = profile?.total_xp || 0
   const level = profile?.level || 1
   const totalCards = flashcardProgress?.length || 0
-  const masteredCards = flashcardProgress?.filter(p => p.confidence_level >= 4).length || 0
-  const learningCards = flashcardProgress?.filter(p => p.confidence_level >= 2 && p.confidence_level < 4).length || 0
+  const masteredCards = flashcardProgress?.filter(p => p.difficulty === "easy").length || 0
+  const learningCards = flashcardProgress?.filter(p => p.difficulty === "medium" || p.difficulty === "good").length || 0
   const totalQuestions = questionProgress?.length || 0
   const correctQuestions = questionProgress?.filter(p => p.is_correct).length || 0
   const accuracy = totalQuestions > 0 ? Math.round((correctQuestions / totalQuestions) * 100) : 0
-  const simsCompleted = simProgress?.filter(s => s.status === "completed").length || 0
+  const simsCompleted = simProgress?.filter(s => s.completed).length || 0
   const avgSimScore = simsCompleted > 0 
-    ? Math.round(simProgress!.filter(s => s.status === "completed").reduce((acc, s) => acc + (s.score || 0), 0) / simsCompleted) 
+    ? Math.round(simProgress!.filter(s => s.completed).reduce((acc, s) => acc + (s.score || 0), 0) / simsCompleted) 
     : 0
-  const totalMinutes = studyLogs?.reduce((acc, log) => acc + (log.minutes_studied || 0), 0) || 0
+  // Estimate minutes based on activity
+  const totalMinutes = studyLogs?.reduce((acc, log) => {
+    return acc + ((log.flashcards_reviewed || 0) * 1) + ((log.questions_answered || 0) * 2) + ((log.cases_completed || 0) * 10)
+  }, 0) || 0
   const totalXpFromLogs = studyLogs?.reduce((acc, log) => acc + (log.xp_earned || 0), 0) || 0
 
   // Build activity heatmap (last 30 days)
   const activityMap = new Map(studyLogs?.map(log => [log.study_date, {
-    minutes: log.minutes_studied || 0,
+    minutes: ((log.flashcards_reviewed || 0) * 1) + ((log.questions_answered || 0) * 2) + ((log.cases_completed || 0) * 10),
     xp: log.xp_earned || 0,
     flashcards: log.flashcards_reviewed || 0,
     questions: log.questions_answered || 0,

@@ -20,15 +20,15 @@ async function getFlashcardDecks(userId: string) {
   // Get user progress for each deck
   const { data: progress } = await supabase
     .from("user_flashcard_progress")
-    .select("flashcard_id, confidence_level")
+    .select("flashcard_id, difficulty")
     .eq("user_id", userId)
 
-  const progressMap = new Map(progress?.map(p => [p.flashcard_id, p.confidence_level]) || [])
+  const progressMap = new Map(progress?.map(p => [p.flashcard_id, p.difficulty]) || [])
 
   return decks?.map(deck => {
     const flashcardIds = (deck.flashcards as { id: string }[])?.map(f => f.id) || []
     const studiedCards = flashcardIds.filter(id => progressMap.has(id)).length
-    const masteredCards = flashcardIds.filter(id => (progressMap.get(id) || 0) >= 4).length
+    const masteredCards = flashcardIds.filter(id => progressMap.get(id) === "easy").length
     
     return {
       ...deck,

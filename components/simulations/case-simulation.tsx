@@ -95,22 +95,19 @@ export function CaseSimulation({ simulation, progress, userId }: CaseSimulationP
     const score = completed ? Math.round((correctCount / steps.length) * 100) : null
 
     await supabase
-      .from("user_simulation_progress")
+      .from("user_case_progress")
       .upsert({
         user_id: userId,
-        simulation_id: simulation.id,
-        status: completed ? "completed" : "in_progress",
-        current_step: stepIndex,
-        responses: Object.fromEntries(newAnswers),
+        case_id: simulation.id,
+        completed: completed,
         score,
-        started_at: progress?.started_at || new Date().toISOString(),
         completed_at: completed ? new Date().toISOString() : null,
-      })
+      }, { onConflict: "user_id,case_id" })
 
     if (completed) {
       const today = new Date().toISOString().split("T")[0]
       const { data: existingLog } = await supabase
-        .from("daily_study_log")
+        .from("daily_study_logs")
         .select("*")
         .eq("user_id", userId)
         .eq("study_date", today)
@@ -118,20 +115,20 @@ export function CaseSimulation({ simulation, progress, userId }: CaseSimulationP
 
       if (existingLog) {
         await supabase
-          .from("daily_study_log")
+          .from("daily_study_logs")
           .update({
-            simulations_completed: existingLog.simulations_completed + 1,
-            minutes_studied: existingLog.minutes_studied + (simulation.estimated_minutes || 15),
+            cases_completed: (existingLog.cases_completed || 0) + 1,
+            xp_earned: (existingLog.xp_earned || 0) + 50,
           })
           .eq("id", existingLog.id)
       } else {
         await supabase
-          .from("daily_study_log")
+          .from("daily_study_logs")
           .insert({
             user_id: userId,
             study_date: today,
-            simulations_completed: 1,
-            minutes_studied: simulation.estimated_minutes || 15,
+            cases_completed: 1,
+            xp_earned: 50,
           })
       }
     }
@@ -174,9 +171,10 @@ export function CaseSimulation({ simulation, progress, userId }: CaseSimulationP
 
     const supabase = createClient()
     await supabase
-      .from("user_simulation_progress")
+      .from("user_case_progress")
       .delete()
       .eq("user_id", userId)
+      .eq("case_id", simulation.id)
       .eq("simulation_id", simulation.id)
   }, [simulation.id, userId])
 

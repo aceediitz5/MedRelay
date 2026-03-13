@@ -31,9 +31,9 @@ import { cn } from "@/lib/utils"
 
 interface FlashcardProgress {
   flashcard_id: string
-  confidence_level: number
+  difficulty: string
   times_reviewed: number
-  last_reviewed: string
+  last_reviewed_at: string
   next_review: string
 }
 
@@ -155,14 +155,14 @@ export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
       .upsert({
         user_id: userId,
         flashcard_id: currentCard.id,
-        confidence_level: level,
+        difficulty: level === 1 ? "hard" : level === 2 ? "medium" : level === 3 ? "good" : "easy",
         times_reviewed: (currentCard.progress?.times_reviewed || 0) + 1,
-        last_reviewed: now.toISOString(),
-        next_review: nextReview.toISOString(),
+        last_reviewed_at: now.toISOString(),
+        next_review_date: nextReview.toISOString(),
         ease_factor: easeFactor,
         interval_days: interval,
         repetitions: repetitions,
-      })
+      }, { onConflict: "user_id,flashcard_id" })
 
     // Update daily study log
     const today = now.toISOString().split("T")[0]
@@ -179,7 +179,6 @@ export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
         .update({
           flashcards_reviewed: (existingLog.flashcards_reviewed || 0) + 1,
           xp_earned: (existingLog.xp_earned || 0) + xpEarned,
-          minutes_studied: (existingLog.minutes_studied || 0) + 1,
         })
         .eq("id", existingLog.id)
     } else {
@@ -190,12 +189,10 @@ export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
           study_date: today,
           flashcards_reviewed: 1,
           xp_earned: xpEarned,
-          minutes_studied: 1,
         })
     }
 
-    // Update user's total XP
-    await supabase.rpc("add_xp", { user_id_param: userId, xp_amount: xpEarned })
+    // Note: XP is tracked in daily_study_logs, profile total_xp can be calculated from logs
 
     // Mark as reviewed and move to next card
     setReviewedCards(prev => new Set([...prev, currentCard.id]))
