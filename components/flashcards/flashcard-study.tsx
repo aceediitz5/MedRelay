@@ -440,3 +440,4 @@ export function FlashcardStudy({ deck, cards, userId }: FlashcardStudyProps) {
     </>
   )
 }
+
