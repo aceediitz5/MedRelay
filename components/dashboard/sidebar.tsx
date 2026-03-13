@@ -16,13 +16,9 @@ import {
   LogOut,
   Menu,
   X,
-  Target,
-  Flame,
   Calendar,
-  AlertTriangle,
-  Shield,
   Trophy,
-  Medal,
+  Package,
 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -31,21 +27,20 @@ import { useRouter } from "next/navigation"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/study-plan", label: "Study Plan", icon: Calendar },
   { href: "/dashboard/flashcards", label: "Flashcards", icon: BookOpen },
   { href: "/dashboard/questions", label: "Question Bank", icon: HelpCircle },
   { href: "/dashboard/simulations", label: "Case Simulations", icon: Stethoscope },
-  { href: "/dashboard/weak-topics", label: "Weak Topics", icon: AlertTriangle },
-  { href: "/dashboard/exam-readiness", label: "Exam Readiness", icon: Shield },
-  { href: "/dashboard/achievements", label: "Achievements", icon: Trophy },
-  { href: "/dashboard/leaderboard", label: "Leaderboard", icon: Medal },
   { href: "/dashboard/progress", label: "Progress", icon: TrendingUp },
+  { href: "/dashboard/study-plan", label: "Study Planner", icon: Calendar },
+  { href: "/dashboard/achievements", label: "Achievements", icon: Trophy },
+  { href: "/dashboard/pricing", label: "Pricing", icon: Crown },
+  { href: "/dashboard/exam-packages", label: "Exam Packages", icon: Package },
 ]
 
 const bottomItems = [
+  { href: "/dashboard/instructor", label: "Instructor Dashboard", icon: GraduationCap },
   { href: "/dashboard/profile", label: "Profile", icon: User },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
-  { href: "/dashboard/pricing", label: "Upgrade", icon: Crown },
 ]
 
 interface SidebarProps {
@@ -68,8 +63,6 @@ export function Sidebar({ user }: SidebarProps) {
     await supabase.auth.signOut()
     router.push("/")
   }
-
-  const isInstructor = user?.user_metadata?.role === "instructor"
 
   return (
     <>
@@ -136,32 +129,13 @@ export function Sidebar({ user }: SidebarProps) {
             )
           })}
 
-          {isInstructor && (
-            <>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3 mt-6 mb-3">
-                Instructor
-              </p>
-              <Link
-                href="/dashboard/instructor"
-                onClick={() => setMobileOpen(false)}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
-                  pathname.startsWith("/dashboard/instructor")
-                    ? "bg-sidebar-accent text-sidebar-primary glow-sm"
-                    : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
-                )}
-              >
-                <GraduationCap className="w-5 h-5" />
-                Instructor Panel
-              </Link>
-            </>
-          )}
+          
         </nav>
 
         {/* Bottom navigation */}
         <div className="p-4 border-t border-sidebar-border space-y-1">
           {bottomItems.map((item) => {
-            const isActive = pathname === item.href
+            const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))
             return (
               <Link
                 key={item.href}
@@ -171,11 +145,10 @@ export function Sidebar({ user }: SidebarProps) {
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
                   isActive
                     ? "bg-sidebar-accent text-sidebar-primary"
-                    : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50",
-                  item.href === "/dashboard/pricing" && "text-warning hover:text-warning"
+                    : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                 )}
               >
-                <item.icon className={cn("w-5 h-5", item.href === "/dashboard/pricing" && "text-warning")} />
+                <item.icon className="w-5 h-5" />
                 {item.label}
               </Link>
             )
