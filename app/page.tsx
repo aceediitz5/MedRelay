@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { GlassCard } from "@/components/ui/glass-card"
+import { ScrollReveal } from "@/components/ui/scroll-reveal"
 import {
   Stethoscope,
   BookOpen,
@@ -255,58 +256,70 @@ export default function LandingPage() {
         
         <div className="max-w-5xl mx-auto text-center relative">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-medium mb-8">
-            <Activity className="w-4 h-4" />
-            <span>Trusted by 3K+ Medical Professionals</span>
-          </div>
+          <ScrollReveal animation="fade-up" delay={100}>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-medium mb-8">
+              <Activity className="w-4 h-4" />
+              <span>Trusted by 3K+ Medical Professionals</span>
+            </div>
+          </ScrollReveal>
 
           {/* Headline */}
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight">
-            Your Patients Are Counting
-            <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400">
-              On Your Knowledge.
-            </span>
-          </h1>
+          <ScrollReveal animation="fade-up" delay={200}>
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight">
+              Your Patients Are Counting
+              <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400">
+                On Your Knowledge.
+              </span>
+            </h1>
+          </ScrollReveal>
 
-          <p className="mt-6 text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
-            MedRelay delivers adaptive flashcards, rigorous question banks, and realistic case simulations — 
-            everything you need to pass your certification and save lives.
-          </p>
+          <ScrollReveal animation="fade-up" delay={300}>
+            <p className="mt-6 text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
+              MedRelay delivers adaptive flashcards, rigorous question banks, and realistic case simulations — 
+              everything you need to pass your certification and save lives.
+            </p>
+          </ScrollReveal>
 
           {/* CTA Buttons */}
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/auth/sign-up">
-              <Button size="lg" className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-400 hover:to-blue-400 text-lg px-8 h-14 shadow-lg shadow-cyan-500/25">
-                Start Learning Free <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-            <Link href="#pricing">
-              <Button size="lg" variant="outline" className="text-lg px-8 h-14 border-gray-700 text-gray-300 hover:bg-white/5 hover:text-white">
-                See Plans
-              </Button>
-            </Link>
-          </div>
+          <ScrollReveal animation="fade-up" delay={400}>
+            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link href="/auth/sign-up">
+                <Button size="lg" className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-400 hover:to-blue-400 text-lg px-8 h-14 shadow-lg shadow-cyan-500/25 btn-hover-lift">
+                  Start Learning Free <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+              <Link href="#pricing">
+                <Button size="lg" variant="outline" className="text-lg px-8 h-14 border-gray-700 text-gray-300 hover:bg-white/5 hover:text-white">
+                  See Plans
+                </Button>
+              </Link>
+            </div>
 
-          {/* Trust indicators */}
-          <p className="mt-6 text-sm text-gray-500">
-            Free forever plan available. Upgrade anytime.
-          </p>
+            {/* Trust indicators */}
+            <p className="mt-6 text-sm text-gray-500">
+              Free forever plan available. Upgrade anytime.
+            </p>
+          </ScrollReveal>
 
           {/* Stats */}
-          <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 pt-12 border-t border-white/5">
-            {[
-              { value: "3K+", label: "Active Students" },
-              { value: "2K+", label: "Flashcards" },
-              { value: "1K+", label: "Practice Questions" },
-              { value: "98%", label: "Pass Rate" },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <p className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">{stat.value}</p>
-                <p className="text-sm text-gray-500 mt-2">{stat.label}</p>
-              </div>
-            ))}
-          </div>
+          <ScrollReveal animation="fade-up" delay={500}>
+            <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 pt-12 border-t border-white/5">
+              {[
+                { value: "3K+", label: "Active Students" },
+                { value: "2K+", label: "Flashcards" },
+                { value: "1K+", label: "Practice Questions" },
+                { value: "98%", label: "Pass Rate" },
+              ].map((stat, index) => (
+                <ScrollReveal key={stat.label} animation="scale" delay={100 * index}>
+                  <div className="text-center">
+                    <p className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">{stat.value}</p>
+                    <p className="text-sm text-gray-500 mt-2">{stat.label}</p>
+                  </div>
+                </ScrollReveal>
+              ))}
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -314,38 +327,41 @@ export default function LandingPage() {
       <section className="py-24 px-4 sm:px-6 lg:px-8 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-950/5 to-transparent" />
         <div className="max-w-7xl mx-auto relative">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Choose Your Path
-            </h2>
-            <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-              Tailored curricula for every healthcare career. Select your track and get a personalized study plan.
-            </p>
-          </div>
+          <ScrollReveal animation="fade-up">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+                Choose Your Path
+              </h2>
+              <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+                Tailored curricula for every healthcare career. Select your track and get a personalized study plan.
+              </p>
+            </div>
+          </ScrollReveal>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {studentTracks.map((track) => (
-              <Link
-                href={`/tracks/${track.slug}`}
-                key={track.title}
-                className={`group relative rounded-2xl border ${track.borderColor} bg-gradient-to-br ${track.color} p-6 hover:scale-[1.02] transition-all duration-300`}
-              >
-                <div className={`w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center mb-4 ${track.iconColor}`}>
-                  <track.icon className="w-7 h-7" />
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-2">{track.title}</h3>
-                <p className="text-gray-400 text-sm mb-4 leading-relaxed">{track.description}</p>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {track.exams.map((exam) => (
-                    <span key={exam} className="text-xs px-2 py-1 rounded-full bg-white/10 text-gray-300">
-                      {exam}
-                    </span>
-                  ))}
-                </div>
-                <div className="flex items-center text-sm font-medium text-white/80 group-hover:text-white transition-colors">
-                  Explore Track <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </Link>
+            {studentTracks.map((track, index) => (
+              <ScrollReveal key={track.title} animation="fade-up" delay={100 * index}>
+                <Link
+                  href={`/tracks/${track.slug}`}
+                  className={`group relative rounded-2xl border ${track.borderColor} bg-gradient-to-br ${track.color} p-6 hover:scale-[1.02] transition-all duration-300 block h-full`}
+                >
+                  <div className={`w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center mb-4 ${track.iconColor}`}>
+                    <track.icon className="w-7 h-7" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-white mb-2">{track.title}</h3>
+                  <p className="text-gray-400 text-sm mb-4 leading-relaxed">{track.description}</p>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {track.exams.map((exam) => (
+                      <span key={exam} className="text-xs px-2 py-1 rounded-full bg-white/10 text-gray-300">
+                        {exam}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex items-center text-sm font-medium text-white/80 group-hover:text-white transition-colors">
+                    Explore Track <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+              </ScrollReveal>
             ))}
           </div>
         </div>
@@ -355,72 +371,80 @@ export default function LandingPage() {
       <section className="py-24 px-4 sm:px-6 lg:px-8 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-950/10 to-transparent" />
         <div className="max-w-7xl mx-auto relative">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Every Topic. Every Specialty.
-            </h2>
-            <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-              Comprehensive coverage across 20+ medical disciplines. Deep content built for EMS, Nursing, and Medical School.
-            </p>
-          </div>
+          <ScrollReveal animation="fade-up">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+                Every Topic. Every Specialty.
+              </h2>
+              <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+                Comprehensive coverage across 20+ medical disciplines. Deep content built for EMS, Nursing, and Medical School.
+              </p>
+            </div>
+          </ScrollReveal>
 
           {/* Topics Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 mb-16">
-            {medicalTopics.map((topic) => (
-              <div
-                key={topic.name}
-                className="group relative bg-white/[0.02] border border-white/5 rounded-xl p-4 hover:border-cyan-500/30 hover:bg-cyan-500/5 transition-all duration-300 cursor-pointer"
-              >
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative flex items-center gap-3">
-                  <div className={`w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center shrink-0 ${topic.color}`}>
-                    <topic.icon className="w-4 h-4" />
+            {medicalTopics.map((topic, index) => (
+              <ScrollReveal key={topic.name} animation="scale" delay={30 * index} duration={400}>
+                <div
+                  className="group relative bg-white/[0.02] border border-white/5 rounded-xl p-4 hover:border-cyan-500/30 hover:bg-cyan-500/5 transition-all duration-300 cursor-pointer"
+                >
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="relative flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center shrink-0 ${topic.color}`}>
+                      <topic.icon className="w-4 h-4" />
+                    </div>
+                    <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors leading-tight">{topic.name}</span>
                   </div>
-                  <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors leading-tight">{topic.name}</span>
                 </div>
-              </div>
+              </ScrollReveal>
             ))}
           </div>
 
           {/* Content Types Legend */}
-          <div className="flex flex-col items-center">
-            <p className="text-sm text-gray-500 mb-6 flex items-center gap-2">
-              <Layers className="w-4 h-4" />
-              Every topic includes all three content types
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-4xl">
-              {contentTypes.map((type) => (
-                <div
-                  key={type.title}
-                  className={`relative overflow-hidden rounded-2xl border border-white/10 p-6 bg-gradient-to-br ${type.gradient}`}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
-                      <type.icon className="w-5 h-5 text-cyan-400" />
+          <ScrollReveal animation="fade-up">
+            <div className="flex flex-col items-center">
+              <p className="text-sm text-gray-500 mb-6 flex items-center gap-2">
+                <Layers className="w-4 h-4" />
+                Every topic includes all three content types
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-4xl">
+                {contentTypes.map((type, index) => (
+                  <ScrollReveal key={type.title} animation="fade-up" delay={100 * index}>
+                    <div
+                      className={`relative overflow-hidden rounded-2xl border border-white/10 p-6 bg-gradient-to-br ${type.gradient} h-full`}
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+                          <type.icon className="w-5 h-5 text-cyan-400" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-white mb-1">{type.title}</h3>
+                          <p className="text-sm text-gray-400">{type.description}</p>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-white mb-1">{type.title}</h3>
-                      <p className="text-sm text-gray-400">{type.description}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                  </ScrollReveal>
+                ))}
+              </div>
             </div>
-          </div>
+          </ScrollReveal>
         </div>
       </section>
 
       {/* How It Works / Value Prop */}
       <section className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Built for Results, Not Busywork
-            </h2>
-            <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-              Every feature is designed to maximize your study efficiency and exam performance.
-            </p>
-          </div>
+          <ScrollReveal animation="fade-up">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+                Built for Results, Not Busywork
+              </h2>
+              <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+                Every feature is designed to maximize your study efficiency and exam performance.
+              </p>
+            </div>
+          </ScrollReveal>
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
@@ -442,20 +466,22 @@ export default function LandingPage() {
                 description: "Timed practice exams and realistic simulations prepare you for test-day pressure.",
                 icon: CheckCircle,
               },
-            ].map((item) => (
-              <div key={item.step} className="relative group">
-                <div className="absolute -inset-px bg-gradient-to-b from-cyan-500/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative bg-white/[0.02] border border-white/5 rounded-2xl p-8 h-full">
-                  <span className="text-5xl font-bold text-cyan-500/20">{item.step}</span>
-                  <div className="mt-4">
-                    <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center mb-4">
-                      <item.icon className="w-6 h-6 text-cyan-400" />
+            ].map((item, index) => (
+              <ScrollReveal key={item.step} animation="fade-up" delay={150 * index}>
+                <div className="relative group h-full">
+                  <div className="absolute -inset-px bg-gradient-to-b from-cyan-500/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="relative bg-white/[0.02] border border-white/5 rounded-2xl p-8 h-full">
+                    <span className="text-5xl font-bold text-cyan-500/20">{item.step}</span>
+                    <div className="mt-4">
+                      <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center mb-4">
+                        <item.icon className="w-6 h-6 text-cyan-400" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-white mb-2">{item.title}</h3>
+                      <p className="text-gray-400 leading-relaxed">{item.description}</p>
                     </div>
-                    <h3 className="text-xl font-semibold text-white mb-2">{item.title}</h3>
-                    <p className="text-gray-400 leading-relaxed">{item.description}</p>
                   </div>
                 </div>
-              </div>
+              </ScrollReveal>
             ))}
           </div>
         </div>
@@ -465,25 +491,27 @@ export default function LandingPage() {
       <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-950/10 to-transparent" />
         <div className="max-w-5xl mx-auto relative">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Simple, Transparent Pricing
-            </h2>
-            <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-              Start free. Upgrade when you need unlimited access to all content and features.
-            </p>
-          </div>
+          <ScrollReveal animation="fade-up">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+                Simple, Transparent Pricing
+              </h2>
+              <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+                Start free. Upgrade when you need unlimited access to all content and features.
+              </p>
+            </div>
+          </ScrollReveal>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {pricingPlans.map((plan) => (
-              <div
-                key={plan.name}
-                className={`relative rounded-3xl p-8 ${
-                  plan.popular
-                    ? "bg-gradient-to-b from-cyan-500/10 to-blue-500/5 border-2 border-cyan-500/30"
-                    : "bg-white/[0.02] border border-white/5"
-                }`}
-              >
+            {pricingPlans.map((plan, index) => (
+              <ScrollReveal key={plan.name} animation="fade-up" delay={150 * index}>
+                <div
+                  className={`relative rounded-3xl p-8 h-full ${
+                    plan.popular
+                      ? "bg-gradient-to-b from-cyan-500/10 to-blue-500/5 border-2 border-cyan-500/30"
+                      : "bg-white/[0.02] border border-white/5"
+                  }`}
+                >
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                     <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-medium shadow-lg shadow-cyan-500/25">
@@ -530,11 +558,12 @@ export default function LandingPage() {
                 </Link>
 
                 {plan.popular && (
-                  <p className="text-center text-sm text-gray-500 mt-4">
-                    Cancel anytime. No questions asked.
-                  </p>
-                )}
-              </div>
+                    <p className="text-center text-sm text-gray-500 mt-4">
+                      Cancel anytime. No questions asked.
+                    </p>
+                  )}
+                </div>
+              </ScrollReveal>
             ))}
           </div>
         </div>
@@ -543,28 +572,32 @@ export default function LandingPage() {
       {/* Testimonials */}
       <section className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Trusted by Future Lifesavers
-            </h2>
-            <p className="text-lg text-gray-400">
-              Join thousands who passed their exams with MedRelay.
-            </p>
-          </div>
+          <ScrollReveal animation="fade-up">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+                Trusted by Future Lifesavers
+              </h2>
+              <p className="text-lg text-gray-400">
+                Join thousands who passed their exams with MedRelay.
+              </p>
+            </div>
+          </ScrollReveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((testimonial) => (
-              <GlassCard key={testimonial.name} className="bg-white/[0.02] border-white/5">
-                <div className="flex gap-1 mb-4">
-                  {Array.from({ length: testimonial.rating }).map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
-                  ))}
-                </div>
-                <p className="text-gray-300 mb-6 leading-relaxed">{`"${testimonial.content}"`}</p>
-                <div className="border-t border-white/5 pt-4">
-                  <p className="font-semibold text-white">{testimonial.name}</p>
-                  <p className="text-sm text-gray-500">{testimonial.role}</p>
-                </div>
-              </GlassCard>
+            {testimonials.map((testimonial, index) => (
+              <ScrollReveal key={testimonial.name} animation="fade-up" delay={100 * index}>
+                <GlassCard className="bg-white/[0.02] border-white/5 h-full">
+                  <div className="flex gap-1 mb-4">
+                    {Array.from({ length: testimonial.rating }).map((_, i) => (
+                      <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+                  <p className="text-gray-300 mb-6 leading-relaxed">{`"${testimonial.content}"`}</p>
+                  <div className="border-t border-white/5 pt-4">
+                    <p className="font-semibold text-white">{testimonial.name}</p>
+                    <p className="text-sm text-gray-500">{testimonial.role}</p>
+                  </div>
+                </GlassCard>
+              </ScrollReveal>
             ))}
           </div>
         </div>
@@ -573,31 +606,33 @@ export default function LandingPage() {
       {/* Final CTA */}
       <section className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
-          <div className="relative rounded-3xl overflow-hidden">
-            {/* Gradient background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 via-blue-500/10 to-purple-500/10" />
-            <div className="absolute inset-0 bg-[#080c10]/60" />
-            
-            <div className="relative p-12 sm:p-16 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 flex items-center justify-center mx-auto mb-6">
-                <Activity className="w-8 h-8 text-cyan-400" />
+          <ScrollReveal animation="scale">
+            <div className="relative rounded-3xl overflow-hidden">
+              {/* Gradient background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 via-blue-500/10 to-purple-500/10" />
+              <div className="absolute inset-0 bg-[#080c10]/60" />
+              
+              <div className="relative p-12 sm:p-16 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 flex items-center justify-center mx-auto mb-6">
+                  <Activity className="w-8 h-8 text-cyan-400" />
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+                  Your Future Patients Need You Ready.
+                </h2>
+                <p className="text-lg text-gray-400 mb-8 max-w-xl mx-auto leading-relaxed">
+                  {"Don't"} leave your certification to chance. Start studying smarter today.
+                </p>
+                <Link href="/auth/sign-up">
+                  <Button size="lg" className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-400 hover:to-blue-400 text-lg px-10 h-14 shadow-lg shadow-cyan-500/25 btn-hover-lift">
+                    Create Free Account <ArrowRight className="ml-2 w-5 h-5" />
+                  </Button>
+                </Link>
+                <p className="mt-6 text-sm text-gray-500">
+                  Free forever plan. No credit card required.
+                </p>
               </div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-                Your Future Patients Need You Ready.
-              </h2>
-              <p className="text-lg text-gray-400 mb-8 max-w-xl mx-auto leading-relaxed">
-                {"Don't"} leave your certification to chance. Start studying smarter today.
-              </p>
-              <Link href="/auth/sign-up">
-                <Button size="lg" className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-400 hover:to-blue-400 text-lg px-10 h-14 shadow-lg shadow-cyan-500/25">
-                  Create Free Account <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-              </Link>
-              <p className="mt-6 text-sm text-gray-500">
-                Free forever plan. No credit card required.
-              </p>
             </div>
-          </div>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -605,22 +640,25 @@ export default function LandingPage() {
       <section id="contact" className="py-24 px-4 sm:px-6 lg:px-8 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-950/5 to-transparent" />
         <div className="max-w-4xl mx-auto relative">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-medium mb-6">
-              <MessageSquare className="w-4 h-4" />
-              <span>Get in Touch</span>
+          <ScrollReveal animation="fade-up">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-medium mb-6">
+                <MessageSquare className="w-4 h-4" />
+                <span>Get in Touch</span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+                Contact Us
+              </h2>
+              <p className="text-lg text-gray-400 max-w-xl mx-auto">
+                Have questions about MedRelay? Want to partner with us? {"We'd"} love to hear from you.
+              </p>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Contact Us
-            </h2>
-            <p className="text-lg text-gray-400 max-w-xl mx-auto">
-              Have questions about MedRelay? Want to partner with us? {"We'd"} love to hear from you.
-            </p>
-          </div>
+          </ScrollReveal>
 
           <div className="grid md:grid-cols-2 gap-8">
             {/* Contact Form */}
-            <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-8">
+            <ScrollReveal animation="fade-right">
+              <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-8 h-full">
               <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
                 <Send className="w-5 h-5 text-cyan-400" />
                 Send us a Message
@@ -683,10 +721,12 @@ export default function LandingPage() {
                   Send Message <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
               </form>
-            </div>
+              </div>
+            </ScrollReveal>
 
             {/* Direct Contact Info */}
-            <div className="space-y-6">
+            <ScrollReveal animation="fade-left" delay={100}>
+              <div className="space-y-6">
               <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-8">
                 <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
                   <Mail className="w-5 h-5 text-cyan-400" />
@@ -728,7 +768,8 @@ export default function LandingPage() {
                   ))}
                 </ul>
               </div>
-            </div>
+              </div>
+            </ScrollReveal>
           </div>
         </div>
       </section>
