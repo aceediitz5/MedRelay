@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { GlassCard } from "@/components/ui/glass-card"
 import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
 import Link from "next/link"
 import {
   GraduationCap,
@@ -12,28 +13,94 @@ import {
   ArrowRight,
   Clock,
   Target,
+  Flame,
+  Zap,
+  HelpCircle,
+  Stethoscope,
+  BarChart3,
+  CheckCircle,
 } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 async function getInstructorData(userId: string) {
   const supabase = await createClient()
   
-  // Get instructor's classes
+  // Get instructor's classes with student count
   const { data: classes } = await supabase
     .from("instructor_classes")
     .select(`
       *,
-      class_members(id, profiles(id, full_name))
+      class_students(student_id)
     `)
     .eq("instructor_id", userId)
     .order("created_at", { ascending: false })
 
-  // Get total students
-  const totalStudents = classes?.reduce((acc, cls) => 
-    acc + ((cls.class_members as { id: string }[])?.length || 0), 0) || 0
+  // Get all student IDs from all classes
+  const allStudentIds = classes?.flatMap(cls => 
+    (cls.class_students as { student_id: string }[])?.map(s => s.student_id) || []
+  ) || []
+  
+  const uniqueStudentIds = [...new Set(allStudentIds)]
+
+  // Get student profiles
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, study_streak, total_xp")
+    .in("id", uniqueStudentIds.length > 0 ? uniqueStudentIds : [""])
+
+  // Get aggregate stats
+  const { data: flashcardProgress } = await supabase
+    .from("user_flashcard_progress")
+    .select("user_id, times_reviewed")
+    .in("user_id", uniqueStudentIds.length > 0 ? uniqueStudentIds : [""])
+
+  const { data: questionProgress } = await supabase
+    .from("user_question_progress")
+    .select("user_id, is_correct")
+    .in("user_id", uniqueStudentIds.length > 0 ? uniqueStudentIds : [""])
+
+  const { data: caseProgress } = await supabase
+    .from("user_case_progress")
+    .select("user_id, completed")
+    .in("user_id", uniqueStudentIds.length > 0 ? uniqueStudentIds : [""])
+
+  // Get today's activity
+  const today = new Date().toISOString().split("T")[0]
+  const { data: todayLogs } = await supabase
+    .from("daily_study_logs")
+    .select("user_id")
+    .in("user_id", uniqueStudentIds.length > 0 ? uniqueStudentIds : [""])
+    .eq("study_date", today)
+
+  // Calculate totals
+  const totalStudents = uniqueStudentIds.length
+  const totalCards = flashcardProgress?.reduce((acc, p) => acc + (p.times_reviewed || 1), 0) || 0
+  const totalQuestions = questionProgress?.length || 0
+  const correctAnswers = questionProgress?.filter(q => q.is_correct)?.length || 0
+  const avgAccuracy = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0
+  const totalCases = caseProgress?.filter(c => c.completed)?.length || 0
+  const activeToday = new Set(todayLogs?.map(l => l.user_id) || []).size
+  const totalXp = profiles?.reduce((acc, p) => acc + (p.total_xp || 0), 0) || 0
+  const avgStreak = profiles && profiles.length > 0
+    ? Math.round(profiles.reduce((acc, p) => acc + (p.study_streak || 0), 0) / profiles.length)
+    : 0
+
+  // Add student counts to classes
+  const classesWithStats = classes?.map(cls => ({
+    ...cls,
+    studentCount: (cls.class_students as { student_id: string }[])?.length || 0,
+  })) || []
 
   return {
-    classes: classes || [],
+    classes: classesWithStats,
     totalStudents,
+    totalCards,
+    totalQuestions,
+    avgAccuracy,
+    totalCases,
+    activeToday,
+    totalXp,
+    avgStreak,
   }
 }
 
@@ -69,40 +136,62 @@ export default async function InstructorPage() {
         </Link>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <GlassCard className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-            <GraduationCap className="w-6 h-6 text-primary" />
+      {/* Overall Analytics */}
+      <GlassCard glow>
+        <div className="flex items-center gap-2 mb-6">
+          <BarChart3 className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-semibold text-foreground">Overall Analytics</h2>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+          <div className="text-center p-3 rounded-lg bg-secondary/50">
+            <Users className="w-5 h-5 text-accent mx-auto mb-1" />
+            <p className="text-xl font-bold text-foreground">{data.totalStudents}</p>
+            <p className="text-xs text-muted-foreground">Students</p>
           </div>
-          <div>
-            <p className="text-2xl font-bold text-foreground">{data.classes.length}</p>
-            <p className="text-sm text-muted-foreground">Active Classes</p>
+          <div className="text-center p-3 rounded-lg bg-secondary/50">
+            <CheckCircle className="w-5 h-5 text-success mx-auto mb-1" />
+            <p className="text-xl font-bold text-foreground">{data.activeToday}</p>
+            <p className="text-xs text-muted-foreground">Active Today</p>
           </div>
-        </GlassCard>
-        <GlassCard className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center">
-            <Users className="w-6 h-6 text-accent" />
+          <div className="text-center p-3 rounded-lg bg-secondary/50">
+            <Target className="w-5 h-5 text-primary mx-auto mb-1" />
+            <p className="text-xl font-bold text-foreground">{data.avgAccuracy}%</p>
+            <p className="text-xs text-muted-foreground">Avg Accuracy</p>
           </div>
-          <div>
-            <p className="text-2xl font-bold text-foreground">{data.totalStudents}</p>
-            <p className="text-sm text-muted-foreground">Total Students</p>
+          <div className="text-center p-3 rounded-lg bg-secondary/50">
+            <BookOpen className="w-5 h-5 text-primary mx-auto mb-1" />
+            <p className="text-xl font-bold text-foreground">{data.totalCards.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground">Cards</p>
           </div>
-        </GlassCard>
-        <GlassCard className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-success/20 flex items-center justify-center">
-            <TrendingUp className="w-6 h-6 text-success" />
+          <div className="text-center p-3 rounded-lg bg-secondary/50">
+            <HelpCircle className="w-5 h-5 text-accent mx-auto mb-1" />
+            <p className="text-xl font-bold text-foreground">{data.totalQuestions.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground">Questions</p>
           </div>
-          <div>
-            <p className="text-2xl font-bold text-foreground">--</p>
-            <p className="text-sm text-muted-foreground">Avg. Performance</p>
+          <div className="text-center p-3 rounded-lg bg-secondary/50">
+            <Stethoscope className="w-5 h-5 text-success mx-auto mb-1" />
+            <p className="text-xl font-bold text-foreground">{data.totalCases}</p>
+            <p className="text-xs text-muted-foreground">Cases</p>
           </div>
-        </GlassCard>
-      </div>
+          <div className="text-center p-3 rounded-lg bg-secondary/50">
+            <Flame className="w-5 h-5 text-warning mx-auto mb-1" />
+            <p className="text-xl font-bold text-foreground">{data.avgStreak}</p>
+            <p className="text-xs text-muted-foreground">Avg Streak</p>
+          </div>
+          <div className="text-center p-3 rounded-lg bg-secondary/50">
+            <Zap className="w-5 h-5 text-yellow-400 mx-auto mb-1" />
+            <p className="text-xl font-bold text-foreground">{data.totalXp.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground">Total XP</p>
+          </div>
+        </div>
+      </GlassCard>
 
       {/* Classes */}
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-foreground">Your Classes</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-foreground">Your Classes</h2>
+          <span className="text-sm text-muted-foreground">{data.classes.length} classes</span>
+        </div>
         {data.classes.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.classes.map((cls) => (
@@ -128,26 +217,28 @@ export default async function InstructorPage() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <GlassCard hover>
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-              <BookOpen className="w-6 h-6 text-primary" />
+        <Link href="/dashboard/instructor/create-class">
+          <GlassCard hover className="h-full">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                <Plus className="w-6 h-6 text-primary" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-foreground">Create New Class</h3>
+                <p className="text-sm text-muted-foreground">Set up a new class for your students</p>
+              </div>
+              <ArrowRight className="w-5 h-5 text-muted-foreground" />
             </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-foreground">Assign Content</h3>
-              <p className="text-sm text-muted-foreground">Assign flashcard decks and questions to your classes</p>
-            </div>
-            <ArrowRight className="w-5 h-5 text-muted-foreground" />
-          </div>
-        </GlassCard>
+          </GlassCard>
+        </Link>
         <GlassCard hover>
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-success/20 flex items-center justify-center">
-              <Target className="w-6 h-6 text-success" />
+              <TrendingUp className="w-6 h-6 text-success" />
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-foreground">View Reports</h3>
-              <p className="text-sm text-muted-foreground">Track student progress and performance analytics</p>
+              <p className="text-sm text-muted-foreground">Track student progress and performance</p>
             </div>
             <ArrowRight className="w-5 h-5 text-muted-foreground" />
           </div>
@@ -163,9 +254,8 @@ function ClassCard({ classData }: { classData: {
   description: string | null
   class_code: string
   created_at: string
-  class_members: { id: string; profiles: { full_name: string | null } | null }[]
+  studentCount: number
 }}) {
-  const studentCount = classData.class_members?.length || 0
   const createdDate = new Date(classData.created_at).toLocaleDateString()
 
   return (
@@ -186,7 +276,7 @@ function ClassCard({ classData }: { classData: {
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <span className="flex items-center gap-1">
             <Users className="w-4 h-4" />
-            {studentCount} students
+            {classData.studentCount} students
           </span>
           <span className="flex items-center gap-1">
             <Clock className="w-4 h-4" />

@@ -18,6 +18,11 @@ import {
   X,
   Target,
   Flame,
+  Calendar,
+  AlertTriangle,
+  Shield,
+  Trophy,
+  Medal,
 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -26,11 +31,14 @@ import { useRouter } from "next/navigation"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/study", label: "Daily Study", icon: Flame },
+  { href: "/dashboard/study-plan", label: "Study Plan", icon: Calendar },
   { href: "/dashboard/flashcards", label: "Flashcards", icon: BookOpen },
   { href: "/dashboard/questions", label: "Question Bank", icon: HelpCircle },
   { href: "/dashboard/simulations", label: "Case Simulations", icon: Stethoscope },
-  { href: "/dashboard/exam-prep", label: "Exam Prep", icon: Target },
+  { href: "/dashboard/weak-topics", label: "Weak Topics", icon: AlertTriangle },
+  { href: "/dashboard/exam-readiness", label: "Exam Readiness", icon: Shield },
+  { href: "/dashboard/achievements", label: "Achievements", icon: Trophy },
+  { href: "/dashboard/leaderboard", label: "Leaderboard", icon: Medal },
   { href: "/dashboard/progress", label: "Progress", icon: TrendingUp },
 ]
 
