@@ -264,19 +264,34 @@ const buyProduct = async (priceId: string) => {
               </ul>
 
               <Button
-                className={cn(
-                  "w-full",
-                  isCurrent
-                    ? "bg-secondary text-secondary-foreground"
-                    : plan.popular
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90 glow-sm"
-                    : "bg-secondary text-foreground hover:bg-secondary/80"
-                )}
-                disabled={isCurrent}
-              >
-                {plan.popular && !isCurrent && <Zap className="w-4 h-4 mr-2" />}
-                {isCurrent ? "Current Plan" : plan.cta}
-              </Button>
+  onClick={async () => {
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        priceId: "price_1TAcXRHTnaP0wMR8HKQROxnf",
+        type: "subscription",
+      }),
+    })
+
+    const data = await res.json()
+    window.location.href = data.url
+  }}
+  className={cn(
+    "w-full",
+    isCurrent
+      ? "bg-secondary text-secondary-foreground"
+      : plan.popular
+      ? "bg-primary text-primary-foreground hover:bg-primary/90 glow-sm"
+      : "bg-secondary text-foreground hover:bg-secondary/80"
+  )}
+  disabled={isCurrent}
+>
+  {plan.popular && !isCurrent && <Zap className="w-4 h-4 mr-2" />}
+  {isCurrent ? "Current Plan" : plan.cta}
+</Button>
 
               {plan.popular && !isCurrent && (
                 <p className="text-xs text-center text-muted-foreground mt-3">
@@ -352,8 +367,13 @@ const buyProduct = async (priceId: string) => {
                 </div>
 
                 {/* CTA */}
-               <Button
-  onClick={() => window.open(pkg.stripeLink)}
+              <Button
+  onClick={() => window.location.href = pkg.stripeLink}
+  className="w-full btn-hover-lift bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90"
+  size="sm"
+>
+  Purchase <ChevronRight className="w-4 h-4 ml-1" />
+</Button>
   className="w-full btn-hover-lift bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90"
   size="sm"
 >
