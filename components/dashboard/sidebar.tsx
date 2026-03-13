@@ -19,6 +19,10 @@ import {
   Trophy,
   Package,
   Shield,
+  BarChart2,
+  Flame,
+  TrendingUp,
+  Users,
 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -27,13 +31,17 @@ import { useRouter } from "next/navigation"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/achievements", label: "Achievements", icon: Trophy },
+  { href: "/dashboard/study", label: "Daily Study", icon: Flame },
+  { href: "/dashboard/flashcards", label: "Flashcards", icon: BookOpen },
+  { href: "/dashboard/questions", label: "Question Bank", icon: HelpCircle },
+  { href: "/dashboard/simulations", label: "Case Simulations", icon: Stethoscope },
+  { href: "/dashboard/study-plan", label: "Study Plan", icon: Calendar },
   { href: "/dashboard/exam-prep", label: "Exam Prep", icon: Package },
   { href: "/dashboard/exam-readiness", label: "Exam Readiness", icon: Shield },
-  { href: "/dashboard/flashcards", label: "Flashcards", icon: BookOpen },
-  { href: "/dashboard/study-plan", label: "Study Plan", icon: Calendar },
-  { href: "/dashboard/simulations", label: "Case Simulations", icon: Stethoscope },
-  { href: "/dashboard/questions", label: "Question Bank", icon: HelpCircle },
+  { href: "/dashboard/weak-topics", label: "Weak Topics", icon: TrendingUp },
+  { href: "/dashboard/progress", label: "Progress", icon: BarChart2 },
+  { href: "/dashboard/achievements", label: "Achievements", icon: Trophy },
+  { href: "/dashboard/leaderboard", label: "Leaderboard", icon: Users },
 ]
 
 const bottomItems = [
@@ -128,8 +136,6 @@ export function Sidebar({ user }: SidebarProps) {
               </Link>
             )
           })}
-
-          
         </nav>
 
         {/* Bottom navigation */}
@@ -153,7 +159,7 @@ export function Sidebar({ user }: SidebarProps) {
               </Link>
             )
           })}
-          
+
           <button
             onClick={handleSignOut}
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:text-destructive hover:bg-destructive/10 w-full transition-all duration-200"
