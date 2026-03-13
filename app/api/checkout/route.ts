@@ -4,10 +4,10 @@ import { NextResponse } from "next/server"
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 export async function POST(req: Request) {
-  const { priceId } = await req.json()
+  const { priceId, type } = await req.json()
 
   const session = await stripe.checkout.sessions.create({
-    mode: "payment",
+    mode: type === "subscription" ? "subscription" : "payment",
     payment_method_types: ["card"],
     line_items: [
       {
