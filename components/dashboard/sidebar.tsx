@@ -8,7 +8,6 @@ import {
   BookOpen,
   HelpCircle,
   Stethoscope,
-  TrendingUp,
   User,
   Settings,
   Crown,
@@ -19,6 +18,7 @@ import {
   Calendar,
   Trophy,
   Package,
+  Shield,
 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -27,20 +27,20 @@ import { useRouter } from "next/navigation"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/flashcards", label: "Flashcards", icon: BookOpen },
-  { href: "/dashboard/questions", label: "Question Bank", icon: HelpCircle },
-  { href: "/dashboard/simulations", label: "Case Simulations", icon: Stethoscope },
-  { href: "/dashboard/progress", label: "Progress", icon: TrendingUp },
-  { href: "/dashboard/study-plan", label: "Study Planner", icon: Calendar },
-  { href: "/dashboard/achievements", label: "Achievements", icon: Trophy },
-  { href: "/dashboard/pricing", label: "Pricing", icon: Crown },
-  { href: "/dashboard/exam-packages", label: "Exam Packages", icon: Package },
+  { href: "/achievements", label: "Achievements", icon: Trophy },
+  { href: "/exam-prep", label: "Exam Prep", icon: Package },
+  { href: "/exam-readiness", label: "Exam Readiness", icon: Shield },
+  { href: "/flashcards", label: "Flashcards", icon: BookOpen },
+  { href: "/study-plan", label: "Study Plan", icon: Calendar },
+  { href: "/case-simulations", label: "Case Simulations", icon: Stethoscope },
+  { href: "/questions", label: "Question Bank", icon: HelpCircle },
 ]
 
 const bottomItems = [
-  { href: "/dashboard/instructor", label: "Instructor Dashboard", icon: GraduationCap },
-  { href: "/dashboard/profile", label: "Profile", icon: User },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings },
+  { href: "/instructor", label: "Instructor", icon: GraduationCap },
+  { href: "/profile", label: "Profile", icon: User },
+  { href: "/pricing", label: "Pricing", icon: Crown },
+  { href: "/settings", label: "Settings", icon: Settings },
 ]
 
 interface SidebarProps {
