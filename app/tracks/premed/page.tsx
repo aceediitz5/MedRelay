@@ -1,10 +1,10 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { TrackWaitlistForm } from "@/components/waitlist/track-waitlist-form"
 import {
   Stethoscope,
   BookOpen,
   HelpCircle,
-  ArrowRight,
   ArrowLeft,
   Microscope,
   Bone,
@@ -17,7 +17,6 @@ import {
   Dna,
   Atom,
   Calculator,
-  CheckCircle,
   Lock,
 } from "lucide-react"
 
@@ -136,6 +135,8 @@ export default function PreMedTrackPage() {
               Coming Soon
             </Button>
           </div>
+
+          <TrackWaitlistForm track="premed" />
         </div>
       </section>
 
