@@ -14,6 +14,10 @@ const plans = [
     description: "Get started with the essentials",
     monthly: 0,
     yearly: 0,
+    priceId: {
+      monthly: null,
+      yearly: null,
+    },
     features: [
       "Limited sample content",
       "Intro flashcards",
@@ -28,6 +32,10 @@ const plans = [
     description: "Great for focused learners on one track",
     monthly: 12,
     yearly: 120,
+    priceId: {
+      monthly: "price_1TBLOCHTnaP0wMR8VWuwjYYd",
+      yearly: "price_1TBLOSHTnaP0wMR8JdXCWGim",
+    },
     features: [
       "Access to 1 learning track",
       "Study guides",
@@ -43,6 +51,10 @@ const plans = [
     description: "Everything you need to pass faster",
     monthly: 19,
     yearly: 190,
+    priceId: {
+      monthly: "price_1TBLMfHTnaP0wMR8iLeA8joU",
+      yearly: "price_1TBLKYHTnaP0wMR8J0AVrJBe",
+    },
     features: [
       "Access to all learning tracks",
       "Full question bank",
@@ -58,6 +70,10 @@ const plans = [
     description: "Advanced tools for serious exam prep",
     monthly: 29,
     yearly: 290,
+    priceId: {
+      monthly: "price_1TBLPgHTnaP0wMR8nkYpf3zx",
+      yearly: "price_1TBLQ2HTnaP0wMR8xP1rvIiC",
+    },
     features: [
       "Everything in Pro",
       "Advanced clinical case studies",
@@ -72,6 +88,31 @@ const plans = [
 
 export function PricingSection() {
   const [billing, setBilling] = useState<BillingCycle>("monthly")
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
+
+  const startCheckout = async (priceId: string | null, planName: string) => {
+    if (!priceId) {
+      window.location.href = "/auth/sign-up"
+      return
+    }
+
+    setLoadingPlan(planName)
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ priceId, type: "subscription" }),
+      })
+      if (res.status === 401) {
+        window.location.href = "/auth/login"
+        return
+      }
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+    } finally {
+      setLoadingPlan(null)
+    }
+  }
 
   return (
     <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8 relative">
@@ -121,6 +162,8 @@ export function PricingSection() {
             const price = billing === "monthly" ? plan.monthly : plan.yearly
             const periodLabel = billing === "monthly" ? "month" : "year"
             const billedLabel = billing === "yearly" ? "Billed annually" : null
+            const activePriceId =
+              billing === "monthly" ? plan.priceId.monthly : plan.priceId.yearly
 
             return (
               <ScrollReveal key={plan.name} animation="fade-up" delay={120 * index}>
@@ -164,17 +207,31 @@ export function PricingSection() {
                   </ul>
 
                   <div className="mt-auto">
-                    <Link href="/auth/sign-up" className="block">
+                    {plan.name === "Free" ? (
+                      <Link href="/auth/sign-up" className="block">
+                        <Button
+                          className={`w-full h-11 text-sm ${
+                            plan.highlight
+                              ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-400 hover:to-blue-400 shadow-lg shadow-cyan-500/20"
+                              : "bg-white/5 text-white hover:bg-white/10 border border-white/10"
+                          }`}
+                        >
+                          {plan.cta}
+                        </Button>
+                      </Link>
+                    ) : (
                       <Button
+                        onClick={() => startCheckout(activePriceId, plan.name)}
                         className={`w-full h-11 text-sm ${
                           plan.highlight
                             ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-400 hover:to-blue-400 shadow-lg shadow-cyan-500/20"
                             : "bg-white/5 text-white hover:bg-white/10 border border-white/10"
                         }`}
+                        disabled={loadingPlan === plan.name}
                       >
-                        {plan.cta}
+                        {loadingPlan === plan.name ? "Redirecting..." : plan.cta}
                       </Button>
-                    </Link>
+                    )}
                   </div>
                 </div>
               </ScrollReveal>
