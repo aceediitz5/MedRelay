@@ -45,7 +45,7 @@ export async function POST(req: Request) {
               You’re officially off the waitlist. Your <strong>${track}</strong> track is now available with full flashcards, questions, and simulations.
             </p>
             <div style="margin:24px 0;">
-              <a href="${trackLink}" 
+              <a href="${trackLink}"
                  style="display:inline-block; background:linear-gradient(90deg,#06b6d4,#3b82f6); color:white; text-decoration:none; padding:14px 24px; border-radius:10px; font-weight:600;">
                 Start Studying Now
               </a>
