@@ -12,6 +12,12 @@ function getStatusIsPro(status: string | null) {
   return status === "active" || status === "trialing"
 }
 
+function addMonths(date: Date, months: number) {
+  const result = new Date(date)
+  result.setMonth(result.getMonth() + months)
+  return result
+}
+
 export async function POST(req: Request) {
   const sig = req.headers.get("stripe-signature")
 
@@ -63,16 +69,20 @@ export async function POST(req: Request) {
 
         if (session.mode === "payment") {
           const examPackageId = session.metadata?.exam_package_id
+          const bundleExamPackageId = session.metadata?.bundle_exam_package_id
+          const bundleProMonths = Number(session.metadata?.bundle_pro_months || "0")
           const paymentIntentId =
             typeof session.payment_intent === "string"
               ? session.payment_intent
               : session.payment_intent?.id
 
-          if (examPackageId) {
+          const finalExamPackageId = bundleExamPackageId || examPackageId
+
+          if (finalExamPackageId) {
             await supabase.from("exam_purchases").upsert(
               {
                 user_id: userId,
-                exam_package_id: examPackageId,
+                exam_package_id: finalExamPackageId,
                 stripe_customer_id: customerId,
                 stripe_payment_intent_id: paymentIntentId || null,
                 stripe_checkout_session_id: session.id,
@@ -81,6 +91,27 @@ export async function POST(req: Request) {
               },
               { onConflict: "user_id,exam_package_id" }
             )
+          }
+
+          if (bundleProMonths > 0) {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("pro_granted_until")
+              .eq("id", userId)
+              .single()
+
+            const now = new Date()
+            const currentGrant = profile?.pro_granted_until ? new Date(profile.pro_granted_until) : null
+            const base = currentGrant && currentGrant > now ? currentGrant : now
+            const newGrant = addMonths(base, bundleProMonths)
+
+            await supabase
+              .from("profiles")
+              .update({
+                is_pro: true,
+                pro_granted_until: newGrant.toISOString(),
+              })
+              .eq("id", userId)
           }
         }
         break
