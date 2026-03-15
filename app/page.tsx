@@ -119,26 +119,7 @@ const contentTypes = [
   },
 ]
 
-const testimonials = [
-  {
-    name: "Sarah M.",
-    role: "Paramedic Student",
-    content: "MedRelay helped me pass my NREMT on the first try. The case simulations were incredibly realistic.",
-    rating: 5,
-  },
-  {
-    name: "James K.",
-    role: "Medical Student",
-    content: "The spaced repetition flashcards made studying for Step 1 so much more efficient.",
-    rating: 5,
-  },
-  {
-    name: "Dr. Emily Chen",
-    role: "Emergency Medicine Resident",
-    content: "Finally a platform that makes medical education adaptive and personalized to my learning style.",
-    rating: 5,
-  },
-]
+
 
 const pricingPlans = [
   {
@@ -617,40 +598,6 @@ export default function LandingPage() {
                     </Button>
                   </Link>
                 </div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <ScrollReveal animation="fade-up">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-                Trusted by Future Lifesavers
-              </h2>
-              <p className="text-lg text-gray-400">
-                Join thousands who passed their exams with MedRelay.
-              </p>
-            </div>
-          </ScrollReveal>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((testimonial, index) => (
-              <ScrollReveal key={testimonial.name} animation="fade-up" delay={100 * index}>
-                <GlassCard className="bg-white/[0.02] border-white/5 h-full">
-                  <div className="flex gap-1 mb-4">
-                    {Array.from({ length: testimonial.rating }).map((_, i) => (
-                      <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-gray-300 mb-6 leading-relaxed">{`"${testimonial.content}"`}</p>
-                  <div className="border-t border-white/5 pt-4">
-                    <p className="font-semibold text-white">{testimonial.name}</p>
-                    <p className="text-sm text-gray-500">{testimonial.role}</p>
-                  </div>
-                </GlassCard>
               </ScrollReveal>
             ))}
           </div>
