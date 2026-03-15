@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { GlassCard } from "@/components/ui/glass-card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { useSubscription } from "@/lib/subscription/context"
 import {
   Ambulance,
   Hospital,
@@ -22,7 +21,6 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-// Exam prep programs - independently purchasable
 const examPrograms = [
   {
     id: "nremt",
@@ -132,6 +130,11 @@ const difficultyColors = {
   Expert: "text-destructive bg-destructive/20",
 }
 
+type SummaryCounts = Record<
+  string,
+  { flashcards: number; questions: number; simulations: number; practiceExams: number }
+>
+
 function ExamProgramCard({
   program,
   isPurchased,
@@ -148,6 +151,13 @@ function ExamProgramCard({
 
   return (
     <GlassCard className="relative overflow-hidden transition-all duration-300 hover:border-primary/30 card-hover">
+      {isPurchased && (
+        <div className="absolute top-4 left-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-success/20 border border-success/30 text-success text-xs font-medium">
+          <CheckCircle className="w-3 h-3" />
+          <span>Unlocked</span>
+        </div>
+      )}
+
       <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/20 border border-primary/30 text-primary text-sm font-bold z-10">
         ${program.price}
       </div>
@@ -238,8 +248,8 @@ function ExamProgramCard({
 }
 
 export default function ExamPrepPage() {
-  const { isPro, isLoading } = useSubscription()
   const [purchasedPrograms, setPurchasedPrograms] = useState<string[]>([])
+  const [countsById, setCountsById] = useState<SummaryCounts>({})
 
   useEffect(() => {
     async function fetchPurchases() {
@@ -252,8 +262,34 @@ export default function ExamPrepPage() {
       }
     }
 
+    async function fetchCounts() {
+      try {
+        const res = await fetch("/api/exam-packages/summary")
+        if (!res.ok) return
+        const data = await res.json()
+        setCountsById(data.countsById || {})
+      } catch (err) {
+        console.error("Failed to fetch counts", err)
+      }
+    }
+
     fetchPurchases()
+    fetchCounts()
   }, [])
+
+  const mergedPrograms = examPrograms.map((p) => {
+    const counts = countsById[p.id]
+    if (!counts) return p
+    return {
+      ...p,
+      phases: [
+        { ...p.phases[0], items: counts.flashcards },
+        { ...p.phases[1], items: counts.questions },
+        { ...p.phases[2], items: counts.simulations },
+        { ...p.phases[3], items: counts.practiceExams },
+      ],
+    }
+  })
 
   const handlePurchase = async (program: typeof examPrograms[0]) => {
     try {
@@ -307,39 +343,13 @@ export default function ExamPrepPage() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
       </GlassCard>
 
-      <GlassCard>
-        <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-          <Target className="w-5 h-5 text-primary" />
-          How Exam Prep Programs Work
-        </h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { icon: BookOpen, phase: "Phase 1", name: "Core Flashcards", description: "Master fundamental concepts" },
-            { icon: HelpCircle, phase: "Phase 2", name: "Practice Questions", description: "Test your knowledge" },
-            { icon: Stethoscope, phase: "Phase 3", name: "Case Simulations", description: "Apply skills to scenarios" },
-            { icon: FileText, phase: "Phase 4", name: "Practice Exams", description: "Simulate the real test" },
-          ].map((item) => (
-            <div key={item.phase} className="flex items-start gap-3 p-3 rounded-lg bg-secondary/30">
-              <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
-                <item.icon className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">{item.phase}</p>
-                <p className="font-medium text-foreground text-sm">{item.name}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </GlassCard>
-
       <div>
         <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
           <Star className="w-5 h-5 text-warning" />
           Available Exam Prep Packages
         </h2>
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {examPrograms.map((program, index) => (
+          {mergedPrograms.map((program, index) => (
             <div key={program.id} className="animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
               <ExamProgramCard 
                 program={program} 
