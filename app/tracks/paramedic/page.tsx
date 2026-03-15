@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { TrackWaitlistForm } from "@/components/waitlist/track-waitlist-form"
 import {
   Stethoscope,
   BookOpen,
@@ -137,6 +138,8 @@ export default function ParamedicTrackPage() {
               Coming Soon
             </Button>
           </div>
+
+          <TrackWaitlistForm track="paramedic" />
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             {["NREMT-P", "Advanced Airway", "Cardiac", "Trauma"].map((exam) => (
