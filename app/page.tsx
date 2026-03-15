@@ -844,7 +844,7 @@ export default function LandingPage() {
               <a href="mailto:medrelay.help@gmail.com" className="hover:text-cyan-400 transition-colors">Support</a>
             </div>
             <p className="text-sm text-gray-500">
-              2024 MedRelay. Built for the future of medical education.
+              © 2026 MedRelay LLC. All rights reserved.
             </p>
           </div>
         </div>
