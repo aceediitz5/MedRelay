@@ -111,6 +111,12 @@ export default function PricingPage() {
   const { isPro } = useSubscription()
   const [purchasedExams, setPurchasedExams] = useState<string[]>([])
   const [countsMap, setCountsMap] = useState<Record<string, SummaryCounts>>({})
+  const [totalCounts, setTotalCounts] = useState<SummaryCounts>({
+    flashcards: 0,
+    questions: 0,
+    simulations: 0,
+    practiceExams: 0,
+  })
 
   const bundles = [
     {
@@ -184,64 +190,79 @@ export default function PricingPage() {
       }
     }
 
+    const loadTotals = async () => {
+      try {
+        const res = await fetch("/api/content/summary", { cache: "no-store" })
+        if (!res.ok) return
+        const data = await res.json()
+        if (active) {
+          setTotalCounts({
+            flashcards: data.flashcards || 0,
+            questions: data.questions || 0,
+            simulations: data.simulations || 0,
+            practiceExams: data.practiceExams || 0,
+          })
+        }
+      } catch {
+        // no-op
+      }
+    }
+
     loadCounts()
-    const id = setInterval(loadCounts, 30000)
+    loadTotals()
+
+    const id = setInterval(() => {
+      loadCounts()
+      loadTotals()
+    }, 30000)
+
     return () => {
       active = false
       clearInterval(id)
     }
   }, [])
 
-  const totals = useMemo(() => {
-    return Object.values(countsMap).reduce(
-      (acc, cur) => ({
-        flashcards: acc.flashcards + (cur.flashcards || 0),
-        questions: acc.questions + (cur.questions || 0),
-        simulations: acc.simulations + (cur.simulations || 0),
-        practiceExams: acc.practiceExams + (cur.practiceExams || 0),
-      }),
-      { flashcards: 0, questions: 0, simulations: 0, practiceExams: 0 }
-    )
-  }, [countsMap])
-
-  const plans = [
-    {
-      name: "Free",
-      price: "$0",
-      period: "forever",
-      icon: BookOpen,
-      description: "Get started with the basics",
-      features: [
-        "Limited daily flashcards and questions",
-        "Preview case simulations",
-        "Basic progress tracking",
-        "Access to select topics",
-      ],
-      cta: "Current Plan",
-      popular: false,
-    },
-    {
-      name: "MedRelay Pro",
-      price: "$12",
-      period: "/month",
-      icon: Crown,
-      description: "Everything you need to pass your exams",
-      features: [
-        totals.flashcards ? `${totals.flashcards}+ flashcards unlocked` : "Unlimited flashcard reviews",
-        totals.questions ? `${totals.questions}+ practice questions` : "Unlimited practice questions",
-        totals.simulations ? `${totals.simulations} case simulations` : "Full case simulation access",
-        totals.practiceExams ? `${totals.practiceExams} practice exams` : "Advanced analytics & tracking",
-        "Advanced analytics & tracking",
-        "XP & achievements system",
-        "All 20+ medical topics",
-        "Daily study engine",
-        "Spaced repetition algorithm",
-      ],
-      cta: "Upgrade to Pro",
-      popular: true,
-      stripePriceId: "price_1TAcXRHTnaP0wMR8HKQROxnf",
-    },
-  ]
+  const plans = useMemo(
+    () => [
+      {
+        name: "Free",
+        price: "$0",
+        period: "forever",
+        icon: BookOpen,
+        description: "Get started with the basics",
+        features: [
+          "Limited daily flashcards and questions",
+          "Preview case simulations",
+          "Basic progress tracking",
+          "Access to select topics",
+        ],
+        cta: "Current Plan",
+        popular: false,
+      },
+      {
+        name: "MedRelay Pro",
+        price: "$12",
+        period: "/month",
+        icon: Crown,
+        description: "Everything you need to pass your exams",
+        features: [
+          totalCounts.flashcards ? `${totalCounts.flashcards}+ flashcards unlocked` : "Unlimited flashcard reviews",
+          totalCounts.questions ? `${totalCounts.questions}+ practice questions` : "Unlimited practice questions",
+          totalCounts.simulations ? `${totalCounts.simulations} case simulations` : "Full case simulation access",
+          totalCounts.practiceExams ? `${totalCounts.practiceExams} practice exams` : "Advanced analytics & tracking",
+          "Advanced analytics & tracking",
+          "XP & achievements system",
+          "All 20+ medical topics",
+          "Daily study engine",
+          "Spaced repetition algorithm",
+        ],
+        cta: "Upgrade to Pro",
+        popular: true,
+        stripePriceId: "price_1TAcXRHTnaP0wMR8HKQROxnf",
+      },
+    ],
+    [totalCounts]
+  )
 
   const buyProduct = async (priceId: string, type: "subscription" | "payment") => {
     try {
@@ -483,3 +504,4 @@ export default function PricingPage() {
     </div>
   )
 }
+
