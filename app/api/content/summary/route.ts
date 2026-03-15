@@ -1,21 +1,15 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
-type CountResult = {
-  table: string
-  count: number
-}
-
-async function countTable(supabase: any, table: string): Promise<CountResult> {
+async function countTable(supabase: any, table: string) {
   try {
     const { count, error } = await supabase
       .from(table)
       .select("id", { count: "exact", head: true })
-
-    if (error) return { table, count: 0 }
-    return { table, count: count || 0 }
+    if (error) return 0
+    return count || 0
   } catch {
-    return { table, count: 0 }
+    return 0
   }
 }
 
@@ -23,27 +17,18 @@ export async function GET() {
   try {
     const supabase = await createClient()
 
-    const tables = [
-      { key: "flashcards", table: "flashcards" },
-      { key: "questions", table: "questions" },
-      { key: "simulations", table: "case_simulations" },
-      { key: "practiceExams", table: "practice_exams" },
-    ]
-
-    const results = await Promise.all(
-      tables.map((t) => countTable(supabase, t.table))
-    )
-
-    const map: Record<string, number> = {}
-    results.forEach((r) => {
-      map[r.table] = r.count
-    })
+    const [flashcards, questions, simulations, practiceExams] = await Promise.all([
+      countTable(supabase, "flashcards"),
+      countTable(supabase, "questions"),
+      countTable(supabase, "case_simulations"),
+      countTable(supabase, "practice_exams"),
+    ])
 
     return NextResponse.json({
-      flashcards: map.flashcards || 0,
-      questions: map.questions || 0,
-      simulations: map.case_simulations || 0,
-      practiceExams: map.practice_exams || 0,
+      flashcards,
+      questions,
+      simulations,
+      practiceExams,
     })
   } catch (error) {
     console.error("Content summary error:", error)
