@@ -130,126 +130,16 @@ const difficultyColors = {
   Expert: "text-destructive bg-destructive/20",
 }
 
-type SummaryCounts = Record<
-  string,
-  { flashcards: number; questions: number; simulations: number; practiceExams: number }
->
-
-function ExamProgramCard({
-  program,
-  isPurchased,
-  onPurchase,
-}: {
-  program: typeof examPrograms[0]
-  isPurchased: boolean
-  onPurchase: (program: typeof examPrograms[0]) => void
-}) {
-  const Icon = program.icon
-  const totalItems = program.phases.reduce((acc, phase) => acc + phase.items, 0)
-  const completedItems = program.phases.reduce((acc, phase) => acc + phase.completed, 0)
-  const progressPercent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0
-
-  return (
-    <GlassCard className="relative overflow-hidden transition-all duration-300 hover:border-primary/30 card-hover">
-      {isPurchased && (
-        <div className="absolute top-4 left-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-success/20 border border-success/30 text-success text-xs font-medium">
-          <CheckCircle className="w-3 h-3" />
-          <span>Unlocked</span>
-        </div>
-      )}
-
-      <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/20 border border-primary/30 text-primary text-sm font-bold z-10">
-        ${program.price}
-      </div>
-
-      <div className="flex flex-col h-full">
-        <div className="flex items-start gap-4 mb-4">
-          <div className={cn("w-14 h-14 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br", program.color)}>
-            <Icon className={cn("w-7 h-7", program.iconColor)} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-foreground text-lg">{program.name}</h3>
-            <p className="text-sm text-muted-foreground mt-1">{program.description}</p>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3 mb-4">
-          <span className={cn("text-xs px-2 py-1 rounded-full font-medium", difficultyColors[program.difficulty as keyof typeof difficultyColors])}>
-            {program.difficulty}
-          </span>
-          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Clock className="w-3.5 h-3.5" />
-            {program.duration}
-          </span>
-          <span className="flex items-center gap-1 text-xs text-primary font-medium">
-            Lifetime Access
-          </span>
-        </div>
-
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {program.topics.slice(0, 4).map((topic) => (
-            <span key={topic} className="text-xs px-2 py-1 rounded-md bg-secondary text-muted-foreground">
-              {topic}
-            </span>
-          ))}
-          {program.topics.length > 4 && (
-            <span className="text-xs px-2 py-1 rounded-md bg-secondary text-muted-foreground">
-              +{program.topics.length - 4} more
-            </span>
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          {program.phases.map((phase, index) => {
-            const icons = [BookOpen, HelpCircle, Stethoscope, FileText]
-            const PhaseIcon = icons[index]
-            return (
-              <div key={phase.name} className="flex items-center gap-2 text-xs text-muted-foreground">
-                <PhaseIcon className="w-3.5 h-3.5" />
-                <span>{phase.items} {phase.name.split(" ").pop()}</span>
-              </div>
-            )
-          })}
-        </div>
-
-        {isPurchased && (
-          <div className="mb-4">
-            <div className="flex justify-between text-xs mb-1.5">
-              <span className="text-muted-foreground">Progress</span>
-              <span className="text-foreground font-medium">{progressPercent}%</span>
-            </div>
-            <Progress value={progressPercent} className="h-1.5" />
-          </div>
-        )}
-
-        <div className="mt-auto">
-          <Button
-            onClick={() => {
-              if (!isPurchased) onPurchase(program)
-            }}
-            className={cn(
-              "w-full h-11 btn-hover-lift",
-              isPurchased
-                ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                : "bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90"
-            )}
-            disabled={isPurchased}
-          >
-            {isPurchased ? (
-              <>Purchased <CheckCircle className="w-4 h-4 ml-1" /></>
-            ) : (
-              <>Purchase for ${program.price} <ChevronRight className="w-4 h-4 ml-1" /></>
-            )}
-          </Button>
-        </div>
-      </div>
-    </GlassCard>
-  )
+type SummaryCounts = {
+  flashcards: number
+  questions: number
+  simulations: number
+  practiceExams: number
 }
 
 export default function ExamPrepPage() {
   const [purchasedPrograms, setPurchasedPrograms] = useState<string[]>([])
-  const [countsById, setCountsById] = useState<SummaryCounts>({})
+  const [countsMap, setCountsMap] = useState<Record<string, SummaryCounts>>({})
 
   useEffect(() => {
     async function fetchPurchases() {
@@ -261,35 +151,22 @@ export default function ExamPrepPage() {
         console.error("Failed to fetch purchases", err)
       }
     }
-
-    async function fetchCounts() {
-      try {
-        const res = await fetch("/api/exam-packages/summary")
-        if (!res.ok) return
-        const data = await res.json()
-        setCountsById(data.countsById || {})
-      } catch (err) {
-        console.error("Failed to fetch counts", err)
-      }
-    }
-
     fetchPurchases()
-    fetchCounts()
   }, [])
 
-  const mergedPrograms = examPrograms.map((p) => {
-    const counts = countsById[p.id]
-    if (!counts) return p
-    return {
-      ...p,
-      phases: [
-        { ...p.phases[0], items: counts.flashcards },
-        { ...p.phases[1], items: counts.questions },
-        { ...p.phases[2], items: counts.simulations },
-        { ...p.phases[3], items: counts.practiceExams },
-      ],
+  useEffect(() => {
+    async function fetchCounts() {
+      try {
+        const res = await fetch("/api/exam-packages/summary", { cache: "no-store" })
+        if (!res.ok) return
+        const data = await res.json()
+        setCountsMap(data || {})
+      } catch {
+        // no-op
+      }
     }
-  })
+    fetchCounts()
+  }, [])
 
   const handlePurchase = async (program: typeof examPrograms[0]) => {
     try {
@@ -349,15 +226,108 @@ export default function ExamPrepPage() {
           Available Exam Prep Packages
         </h2>
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {mergedPrograms.map((program, index) => (
-            <div key={program.id} className="animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
-              <ExamProgramCard 
-                program={program} 
-                isPurchased={purchasedPrograms.includes(program.id)} 
-                onPurchase={handlePurchase}
-              />
-            </div>
-          ))}
+          {examPrograms.map((program, index) => {
+            const counts = countsMap[program.id]
+            const phases = program.phases.map((p) => {
+              if (!counts) return p
+              if (p.name.includes("Flashcards")) return { ...p, items: counts.flashcards }
+              if (p.name.includes("Questions")) return { ...p, items: counts.questions }
+              if (p.name.includes("Simulations")) return { ...p, items: counts.simulations }
+              if (p.name.includes("Exams")) return { ...p, items: counts.practiceExams }
+              return p
+            })
+            const isPurchased = purchasedPrograms.includes(program.id)
+
+            const totalItems = phases.reduce((acc, phase) => acc + phase.items, 0)
+            const completedItems = phases.reduce((acc, phase) => acc + phase.completed, 0)
+            const progressPercent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0
+
+            const Icon = program.icon
+
+            return (
+              <div key={program.id} className="animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
+                <GlassCard className="relative overflow-hidden transition-all duration-300 hover:border-primary/30 card-hover">
+                  <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/20 border border-primary/30 text-primary text-sm font-bold z-10">
+                    ${program.price}
+                  </div>
+
+                  <div className="flex flex-col h-full">
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className={cn("w-14 h-14 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br", program.color)}>
+                        <Icon className={cn("w-7 h-7", program.iconColor)} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-foreground text-lg">{program.name}</h3>
+                        <p className="text-sm text-muted-foreground mt-1">{program.description}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3 mb-4">
+                      <span className={cn("text-xs px-2 py-1 rounded-full font-medium", difficultyColors[program.difficulty as keyof typeof difficultyColors])}>
+                        {program.difficulty}
+                      </span>
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Clock className="w-3.5 h-3.5" />
+                        {program.duration}
+                      </span>
+                      <span className="flex items-center gap-1 text-xs text-primary font-medium">
+                        Lifetime Access
+                      </span>
+                      {isPurchased && (
+                        <span className="text-xs px-2 py-1 rounded-full bg-success/20 text-success font-medium">
+                          Unlocked
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 mb-4">
+                      {phases.map((phase, idx) => {
+                        const icons = [BookOpen, HelpCircle, Stethoscope, FileText]
+                        const PhaseIcon = icons[idx]
+                        return (
+                          <div key={phase.name} className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <PhaseIcon className="w-3.5 h-3.5" />
+                            <span>{phase.items} {phase.name.split(" ").pop()}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    {isPurchased && (
+                      <div className="mb-4">
+                        <div className="flex justify-between text-xs mb-1.5">
+                          <span className="text-muted-foreground">Progress</span>
+                          <span className="text-foreground font-medium">{progressPercent}%</span>
+                        </div>
+                        <Progress value={progressPercent} className="h-1.5" />
+                      </div>
+                    )}
+
+                    <div className="mt-auto">
+                      <Button
+                        onClick={() => {
+                          if (!isPurchased) handlePurchase(program)
+                        }}
+                        className={cn(
+                          "w-full h-11 btn-hover-lift",
+                          isPurchased
+                            ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                            : "bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90"
+                        )}
+                        disabled={isPurchased}
+                      >
+                        {isPurchased ? (
+                          <>Purchased <CheckCircle className="w-4 h-4 ml-1" /></>
+                        ) : (
+                          <>Purchase for ${program.price} <ChevronRight className="w-4 h-4 ml-1" /></>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </GlassCard>
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>
