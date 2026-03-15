@@ -1,10 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { GlassCard } from "@/components/ui/glass-card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { UpgradeModal } from "@/components/subscription/upgrade-modal"
 import { useSubscription } from "@/lib/subscription/context"
 import {
   Ambulance,
@@ -36,6 +35,7 @@ const examPrograms = [
     difficulty: "Intermediate",
     duration: "8-12 weeks",
     price: 99,
+    stripePriceId: "price_1TAcZiHTnaP0wMR8i8gXGLS1",
     topics: ["Patient Assessment", "Airway Management", "Cardiology", "Trauma", "EMS Operations", "Pharmacology"],
     phases: [
       { name: "Core Flashcards", items: 150, completed: 0 },
@@ -55,6 +55,7 @@ const examPrograms = [
     difficulty: "Advanced",
     duration: "12-16 weeks",
     price: 129,
+    stripePriceId: "price_1TAcb1HTnaP0wMR8B1kztL3M",
     topics: ["Advanced Airway", "Cardiac Arrest", "Pharmacology", "Trauma Management", "Special Populations"],
     phases: [
       { name: "Core Flashcards", items: 200, completed: 0 },
@@ -74,6 +75,7 @@ const examPrograms = [
     difficulty: "Intermediate",
     duration: "10-14 weeks",
     price: 149,
+    stripePriceId: "price_1TAcbMHTnaP0wMR8llyNupdV",
     topics: ["Pharmacology", "Med-Surg", "Pediatrics", "Mental Health", "Maternal-Newborn", "Critical Care"],
     phases: [
       { name: "Core Flashcards", items: 250, completed: 0 },
@@ -93,6 +95,7 @@ const examPrograms = [
     difficulty: "Advanced",
     duration: "16-20 weeks",
     price: 199,
+    stripePriceId: "price_1TAcbjHTnaP0wMR8vB1uQ9ZQ",
     topics: ["Biochemistry", "Biology", "Chemistry", "Physics", "Psychology", "Sociology"],
     phases: [
       { name: "Core Flashcards", items: 300, completed: 0 },
@@ -112,6 +115,7 @@ const examPrograms = [
     difficulty: "Expert",
     duration: "20-24 weeks",
     price: 249,
+    stripePriceId: "price_1TAccWHTnaP0wMR8CiF5Z3Tk",
     topics: ["Anatomy", "Pathology", "Pharmacology", "Physiology", "Biochemistry", "Microbiology"],
     phases: [
       { name: "Core Flashcards", items: 350, completed: 0 },
@@ -128,142 +132,149 @@ const difficultyColors = {
   Expert: "text-destructive bg-destructive/20",
 }
 
-function ExamProgramCard({ program, isPurchased }: { program: typeof examPrograms[0]; isPurchased: boolean }) {
-  const [purchaseModalOpen, setPurchaseModalOpen] = useState(false)
+function ExamProgramCard({
+  program,
+  isPurchased,
+  onPurchase,
+}: {
+  program: typeof examPrograms[0]
+  isPurchased: boolean
+  onPurchase: (program: typeof examPrograms[0]) => void
+}) {
   const Icon = program.icon
   const totalItems = program.phases.reduce((acc, phase) => acc + phase.items, 0)
   const completedItems = program.phases.reduce((acc, phase) => acc + phase.completed, 0)
   const progressPercent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0
 
-  const handleStartPrep = () => {
-    if (!isPurchased) {
-      setPurchaseModalOpen(true)
-    }
-    // TODO: Navigate to program detail page when purchased
-  }
-
   return (
-    <>
-      <GlassCard className="relative overflow-hidden transition-all duration-300 hover:border-primary/30 card-hover">
-        {/* Price badge */}
-        <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/20 border border-primary/30 text-primary text-sm font-bold z-10">
-          ${program.price}
+    <GlassCard className="relative overflow-hidden transition-all duration-300 hover:border-primary/30 card-hover">
+      <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/20 border border-primary/30 text-primary text-sm font-bold z-10">
+        ${program.price}
+      </div>
+
+      <div className="flex flex-col h-full">
+        <div className="flex items-start gap-4 mb-4">
+          <div className={cn("w-14 h-14 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br", program.color)}>
+            <Icon className={cn("w-7 h-7", program.iconColor)} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-foreground text-lg">{program.name}</h3>
+            <p className="text-sm text-muted-foreground mt-1">{program.description}</p>
+          </div>
         </div>
 
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="flex items-start gap-4 mb-4">
-            <div className={cn(
-              "w-14 h-14 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br",
-              program.color
-            )}>
-              <Icon className={cn("w-7 h-7", program.iconColor)} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-foreground text-lg">{program.name}</h3>
-              <p className="text-sm text-muted-foreground mt-1">{program.description}</p>
-            </div>
-          </div>
+        <div className="flex flex-wrap items-center gap-3 mb-4">
+          <span className={cn("text-xs px-2 py-1 rounded-full font-medium", difficultyColors[program.difficulty as keyof typeof difficultyColors])}>
+            {program.difficulty}
+          </span>
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Clock className="w-3.5 h-3.5" />
+            {program.duration}
+          </span>
+          <span className="flex items-center gap-1 text-xs text-primary font-medium">
+            Lifetime Access
+          </span>
+        </div>
 
-          {/* Meta info */}
-          <div className="flex flex-wrap items-center gap-3 mb-4">
-            <span className={cn(
-              "text-xs px-2 py-1 rounded-full font-medium",
-              difficultyColors[program.difficulty as keyof typeof difficultyColors]
-            )}>
-              {program.difficulty}
+        <div className="flex flex-wrap gap-1.5 mb-4">
+          {program.topics.slice(0, 4).map((topic) => (
+            <span key={topic} className="text-xs px-2 py-1 rounded-md bg-secondary text-muted-foreground">
+              {topic}
             </span>
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Clock className="w-3.5 h-3.5" />
-              {program.duration}
+          ))}
+          {program.topics.length > 4 && (
+            <span className="text-xs px-2 py-1 rounded-md bg-secondary text-muted-foreground">
+              +{program.topics.length - 4} more
             </span>
-            <span className="flex items-center gap-1 text-xs text-primary font-medium">
-              Lifetime Access
-            </span>
-          </div>
-
-          {/* Topics */}
-          <div className="flex flex-wrap gap-1.5 mb-4">
-            {program.topics.slice(0, 4).map((topic) => (
-              <span key={topic} className="text-xs px-2 py-1 rounded-md bg-secondary text-muted-foreground">
-                {topic}
-              </span>
-            ))}
-            {program.topics.length > 4 && (
-              <span className="text-xs px-2 py-1 rounded-md bg-secondary text-muted-foreground">
-                +{program.topics.length - 4} more
-              </span>
-            )}
-          </div>
-
-          {/* Phases Preview */}
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            {program.phases.map((phase, index) => {
-              const icons = [BookOpen, HelpCircle, Stethoscope, FileText]
-              const PhaseIcon = icons[index]
-              return (
-                <div key={phase.name} className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <PhaseIcon className="w-3.5 h-3.5" />
-                  <span>{phase.items} {phase.name.split(" ").pop()}</span>
-                </div>
-              )
-            })}
-          </div>
-
-          {/* Progress */}
-          {isPurchased && (
-            <div className="mb-4">
-              <div className="flex justify-between text-xs mb-1.5">
-                <span className="text-muted-foreground">Progress</span>
-                <span className="text-foreground font-medium">{progressPercent}%</span>
-              </div>
-              <Progress value={progressPercent} className="h-1.5" />
-            </div>
           )}
-
-          {/* CTA */}
-          <div className="mt-auto">
-            <Button
-              onClick={handleStartPrep}
-              className={cn(
-                "w-full h-11 btn-hover-lift",
-                isPurchased
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                  : "bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90"
-              )}
-            >
-              {isPurchased ? (
-                <>
-                  Continue Prep <ChevronRight className="w-4 h-4 ml-1" />
-                </>
-              ) : (
-                <>
-                  Purchase for ${program.price} <ChevronRight className="w-4 h-4 ml-1" />
-                </>
-              )}
-            </Button>
-          </div>
         </div>
-      </GlassCard>
 
-      {/* Purchase Modal */}
-      <UpgradeModal
-        open={purchaseModalOpen}
-        onOpenChange={setPurchaseModalOpen}
-        feature="exam_prep"
-      />
-    </>
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          {program.phases.map((phase, index) => {
+            const icons = [BookOpen, HelpCircle, Stethoscope, FileText]
+            const PhaseIcon = icons[index]
+            return (
+              <div key={phase.name} className="flex items-center gap-2 text-xs text-muted-foreground">
+                <PhaseIcon className="w-3.5 h-3.5" />
+                <span>{phase.items} {phase.name.split(" ").pop()}</span>
+              </div>
+            )
+          })}
+        </div>
+
+        {isPurchased && (
+          <div className="mb-4">
+            <div className="flex justify-between text-xs mb-1.5">
+              <span className="text-muted-foreground">Progress</span>
+              <span className="text-foreground font-medium">{progressPercent}%</span>
+            </div>
+            <Progress value={progressPercent} className="h-1.5" />
+          </div>
+        )}
+
+        <div className="mt-auto">
+          <Button
+            onClick={() => {
+              if (!isPurchased) onPurchase(program)
+            }}
+            className={cn(
+              "w-full h-11 btn-hover-lift",
+              isPurchased
+                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                : "bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90"
+            )}
+            disabled={isPurchased}
+          >
+            {isPurchased ? (
+              <>Purchased <CheckCircle className="w-4 h-4 ml-1" /></>
+            ) : (
+              <>Purchase for ${program.price} <ChevronRight className="w-4 h-4 ml-1" /></>
+            )}
+          </Button>
+        </div>
+      </div>
+    </GlassCard>
   )
 }
 
 export default function ExamPrepPage() {
   const { isPro, isLoading } = useSubscription()
-  // In a real app, this would come from Supabase tracking user purchases
-  const purchasedPrograms: string[] = []
+  const [purchasedPrograms, setPurchasedPrograms] = useState<string[]>([])
+
+  useEffect(() => {
+    async function fetchPurchases() {
+      try {
+        const res = await fetch("/api/user-purchases")
+        const data = await res.json()
+        setPurchasedPrograms(data.purchasedExamIds || [])
+      } catch (err) {
+        console.error("Failed to fetch purchases", err)
+      }
+    }
+
+    fetchPurchases()
+  }, [])
+
+  const handlePurchase = async (program: typeof examPrograms[0]) => {
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ priceId: program.stripePriceId, type: "payment" }),
+      })
+      if (res.status === 401) {
+        window.location.href = "/auth/login"
+        return
+      }
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+    } catch (err) {
+      console.error("Checkout error:", err)
+    }
+  }
 
   return (
     <div className="space-y-8 pt-12 lg:pt-0 animate-fade-in-up">
-      {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
@@ -275,7 +286,6 @@ export default function ExamPrepPage() {
         </div>
       </div>
 
-      {/* Value Proposition Banner */}
       <GlassCard className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border-primary/30">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -297,7 +307,6 @@ export default function ExamPrepPage() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
       </GlassCard>
 
-      {/* Program Phases Explanation */}
       <GlassCard>
         <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
           <Target className="w-5 h-5 text-primary" />
@@ -324,7 +333,6 @@ export default function ExamPrepPage() {
         </div>
       </GlassCard>
 
-      {/* Exam Programs Grid */}
       <div>
         <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
           <Star className="w-5 h-5 text-warning" />
@@ -336,24 +344,12 @@ export default function ExamPrepPage() {
               <ExamProgramCard 
                 program={program} 
                 isPurchased={purchasedPrograms.includes(program.id)} 
+                onPurchase={handlePurchase}
               />
             </div>
           ))}
         </div>
       </div>
-
-      {/* Pricing Summary */}
-      <GlassCard>
-        <h2 className="text-lg font-semibold text-foreground mb-4">Pricing Summary</h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {examPrograms.map((program) => (
-            <div key={program.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/30">
-              <span className="text-sm text-foreground truncate">{program.name.replace(" Prep", "")}</span>
-              <span className="text-sm font-bold text-primary ml-2">${program.price}</span>
-            </div>
-          ))}
-        </div>
-      </GlassCard>
     </div>
   )
 }
