@@ -19,12 +19,20 @@ import { cn } from "@/lib/utils"
 
 type ReadinessSummary = {
   accuracy: number
-  readinessScore: number
   confidenceLow: number
   confidenceHigh: number
-  weakTopics: { topic: string; incorrect: number }[]
-  studiedToday: boolean
-  dailyLimitReached: boolean
+  totalAttempts: number
+  weakTopics: string[]
+}
+
+type UsageSummary = {
+  flashcardsUsed?: number
+  flashcardsLimit?: number
+  questionsUsed?: number
+  questionsLimit?: number
+  simulationsUsed?: number
+  simulationsLimit?: number
+  studiedToday?: boolean
 }
 
 const EXAM_PACKAGES = [
@@ -39,16 +47,18 @@ export default function DashboardPage() {
   const { isPro } = useSubscription()
   const [readiness, setReadiness] = useState<ReadinessSummary | null>(null)
   const [purchasedExamIds, setPurchasedExamIds] = useState<string[]>([])
+  const [usage, setUsage] = useState<UsageSummary | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let isMounted = true
 
-    async function load() {
+    const load = async () => {
       try {
-        const [readinessRes, purchasesRes] = await Promise.all([
-          fetch("/api/exam-readiness/summary"),
-          fetch("/api/user-purchases"),
+        const [readinessRes, purchasesRes, usageRes] = await Promise.all([
+          fetch("/api/exam-readiness/summary", { cache: "no-store" }),
+          fetch("/api/user-purchases", { cache: "no-store" }),
+          fetch("/api/usage/summary").catch(() => null),
         ])
 
         if (readinessRes.ok) {
@@ -60,14 +70,21 @@ export default function DashboardPage() {
           const data = await purchasesRes.json()
           if (isMounted) setPurchasedExamIds(data.purchasedExamIds || [])
         }
+
+        if (usageRes && usageRes.ok) {
+          const data = (await usageRes.json()) as UsageSummary
+          if (isMounted) setUsage(data)
+        }
       } finally {
         if (isMounted) setLoading(false)
       }
     }
 
     load()
+    const id = setInterval(load, 30000)
     return () => {
       isMounted = false
+      clearInterval(id)
     }
   }, [])
 
@@ -75,7 +92,16 @@ export default function DashboardPage() {
     return EXAM_PACKAGES.filter((p) => purchasedExamIds.includes(p.id))
   }, [purchasedExamIds])
 
-  const showStreakProtection = readiness ? !readiness.studiedToday : false
+  const readinessScore = readiness ? Math.round(readiness.accuracy) : 0
+  const confidenceLow = readiness ? Math.round(readiness.confidenceLow) : 0
+  const confidenceHigh = readiness ? Math.round(readiness.confidenceHigh) : 0
+
+  const dailyLimitReached =
+    Boolean(usage?.flashcardsLimit && usage.flashcardsUsed && usage.flashcardsUsed >= usage.flashcardsLimit) ||
+    Boolean(usage?.questionsLimit && usage.questionsUsed && usage.questionsUsed >= usage.questionsLimit) ||
+    Boolean(usage?.simulationsLimit && usage.simulationsUsed && usage.simulationsUsed >= usage.simulationsLimit)
+
+  const showStreakProtection = usage ? !usage.studiedToday : false
 
   return (
     <div className="space-y-8 pt-12 lg:pt-0">
@@ -95,7 +121,7 @@ export default function DashboardPage() {
       </div>
 
       <LimitBanner
-        limitReached={Boolean(readiness?.dailyLimitReached)}
+        limitReached={dailyLimitReached}
         message="Daily practice limit reached. Upgrade to keep going."
       />
 
@@ -120,12 +146,12 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between text-sm mb-2">
                 <span className="text-muted-foreground">Readiness</span>
                 <span className="text-foreground font-medium">
-                  {readiness ? `${readiness.readinessScore}%` : "--"}
+                  {readiness ? `${readinessScore}%` : "--"}
                 </span>
               </div>
-              <Progress value={readiness?.readinessScore || 0} className="h-2" />
+              <Progress value={readinessScore} className="h-2" />
               <p className="text-xs text-muted-foreground mt-2">
-                Confidence interval: {readiness ? `${Math.round(readiness.confidenceLow * 100)}% - ${Math.round(readiness.confidenceHigh * 100)}%` : "--"}
+                Confidence interval: {readiness ? `${confidenceLow}% - ${confidenceHigh}%` : "--"}
               </p>
             </div>
 
@@ -133,8 +159,8 @@ export default function DashboardPage() {
               <p className="text-sm font-medium text-foreground mb-2">Weak Topics</p>
               <div className="flex flex-wrap gap-2">
                 {(readiness?.weakTopics || []).slice(0, 4).map((t) => (
-                  <span key={t.topic} className="text-xs px-2 py-1 rounded-md bg-secondary text-muted-foreground">
-                    {t.topic}
+                  <span key={t} className="text-xs px-2 py-1 rounded-md bg-secondary text-muted-foreground">
+                    {t}
                   </span>
                 ))}
                 {readiness && readiness.weakTopics.length === 0 && (
@@ -229,4 +255,3 @@ export default function DashboardPage() {
     </div>
   )
 }
-
