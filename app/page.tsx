@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { GlassCard } from "@/components/ui/glass-card"
 import { ScrollReveal } from "@/components/ui/scroll-reveal"
+import { PricingSection } from "@/components/marketing/pricing-section"
 import {
   Stethoscope,
   BookOpen,
@@ -131,65 +132,6 @@ const contentTypes = [
     title: "Simulations",
     description: "Interactive clinical scenarios",
     gradient: "from-indigo-500/20 to-purple-500/20",
-  },
-]
-
-const testimonials = [
-  {
-    name: "Sarah M.",
-    role: "Paramedic Student",
-    content: "MedRelay helped me pass my NREMT on the first try. The case simulations were incredibly realistic.",
-    rating: 5,
-  },
-  {
-    name: "James K.",
-    role: "Medical Student",
-    content: "The spaced repetition flashcards made studying for Step 1 so much more efficient.",
-    rating: 5,
-  },
-  {
-    name: "Dr. Emily Chen",
-    role: "Emergency Medicine Resident",
-    content: "Finally a platform that makes medical education adaptive and personalized to my learning style.",
-    rating: 5,
-  },
-]
-
-const pricingPlans = [
-  {
-    name: "Free",
-    price: "$0",
-    period: "forever",
-    description: "Get started with the basics",
-    features: [
-      { text: "100 flashcards per topic", included: true },
-      { text: "50 practice questions", included: true },
-      { text: "Basic progress tracking", included: true },
-      { text: "2 topics unlocked", included: true },
-      { text: "Case simulations", included: false },
-      { text: "All 20+ topics", included: false },
-      { text: "Priority support", included: false },
-    ],
-    cta: "Start Free",
-    popular: false,
-  },
-  {
-    name: "Pro",
-    price: "$12",
-    period: "per month",
-    description: "Everything you need to pass",
-    features: [
-      { text: "2,000+ flashcards", included: true },
-      { text: "Full question bank (1,000+)", included: true },
-      { text: "Advanced analytics", included: true },
-      { text: "All 20+ topics unlocked", included: true },
-      { text: "All case simulations", included: true },
-      { text: "Exam mode & timed tests", included: true },
-      { text: "Offline access", included: true },
-      { text: "Priority support", included: true },
-    ],
-    cta: "Get Pro",
-    popular: true,
   },
 ]
 
@@ -523,86 +465,7 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-950/10 to-transparent" />
-        <div className="max-w-5xl mx-auto relative">
-          <ScrollReveal animation="fade-up">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-                Simple, Transparent Pricing
-              </h2>
-              <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-                Start free. Upgrade when you need unlimited access to all content and features.
-              </p>
-            </div>
-          </ScrollReveal>
-
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {pricingPlans.map((plan, index) => (
-              <ScrollReveal key={plan.name} animation="fade-up" delay={150 * index}>
-                <div
-                  className={`relative rounded-3xl p-8 h-full ${
-                    plan.popular
-                      ? "bg-gradient-to-b from-cyan-500/10 to-blue-500/5 border-2 border-cyan-500/30"
-                      : "bg-white/[0.02] border border-white/5"
-                  }`}
-                >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-medium shadow-lg shadow-cyan-500/25">
-                      <Crown className="w-4 h-4" /> Most Popular
-                    </span>
-                  </div>
-                )}
-
-                <div className="mb-8">
-                  <h3 className="text-xl font-semibold text-white mb-2">{plan.name}</h3>
-                  <p className="text-gray-400 text-sm">{plan.description}</p>
-                </div>
-
-                <div className="mb-8">
-                  <span className="text-5xl font-bold text-white">{plan.price}</span>
-                  <span className="text-gray-400 ml-2">/ {plan.period}</span>
-                </div>
-
-                <ul className="space-y-4 mb-8">
-                  {plan.features.map((feature) => (
-                    <li key={feature.text} className="flex items-start gap-3">
-                      {feature.included ? (
-                        <CheckCircle className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
-                      ) : (
-                        <X className="w-5 h-5 text-gray-600 shrink-0 mt-0.5" />
-                      )}
-                      <span className={feature.included ? "text-gray-300" : "text-gray-600"}>
-                        {feature.text}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-
-                <Link href="/auth/sign-up" className="block">
-                  <Button
-                    className={`w-full h-12 text-base ${
-                      plan.popular
-                        ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-400 hover:to-blue-400 shadow-lg shadow-cyan-500/20"
-                        : "bg-white/5 text-white hover:bg-white/10 border border-white/10"
-                    }`}
-                  >
-                    {plan.cta}
-                  </Button>
-                </Link>
-
-                {plan.popular && (
-                    <p className="text-center text-sm text-gray-500 mt-4">
-                      Cancel anytime. No questions asked.
-                    </p>
-                  )}
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
+      <PricingSection />
 
       {/* Exam Prep Packages Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 relative">
@@ -650,39 +513,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <ScrollReveal animation="fade-up">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-                Trusted by Future Lifesavers
-              </h2>
-              <p className="text-lg text-gray-400">
-                Join thousands who passed their exams with MedRelay.
-              </p>
-            </div>
-          </ScrollReveal>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((testimonial, index) => (
-              <ScrollReveal key={testimonial.name} animation="fade-up" delay={100 * index}>
-                <GlassCard className="bg-white/[0.02] border-white/5 h-full">
-                  <div className="flex gap-1 mb-4">
-                    {Array.from({ length: testimonial.rating }).map((_, i) => (
-                      <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-gray-300 mb-6 leading-relaxed">{`"${testimonial.content}"`}</p>
-                  <div className="border-t border-white/5 pt-4">
-                    <p className="font-semibold text-white">{testimonial.name}</p>
-                    <p className="text-sm text-gray-500">{testimonial.role}</p>
-                  </div>
-                </GlassCard>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Final CTA */}
       <section className="py-24 px-4 sm:px-6 lg:px-8">
@@ -871,7 +701,7 @@ export default function LandingPage() {
               <a href="mailto:medrelay.help@gmail.com" className="hover:text-cyan-400 transition-colors">Support</a>
             </div>
             <p className="text-sm text-gray-500">
-              2024 MedRelay. Built for the future of medical education.
+              2026 MedRelay. Built for the future of medical education.
             </p>
           </div>
         </div>
