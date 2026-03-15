@@ -160,7 +160,7 @@ const pricingPlans = [
   },
   {
     name: "Pro",
-    price: "$19",
+    price: "$12",
     period: "per month",
     description: "Everything you need to pass",
     features: [
