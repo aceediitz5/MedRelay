@@ -12,6 +12,14 @@ const SUBSCRIPTION_PRICE_IDS = new Set([
   "price_1TAcXRHTnaP0wMR8HKQROxnf",
 ])
 
+const BUNDLE_PRICE_MAP: Record<string, { examPackageId: string; proMonths: number }> = {
+  price_1TB6VXHTnaP0wMR8NXSJAdD6: { examPackageId: "nremt", proMonths: 12 },
+  price_1TB6VyHTnaP0wMR8Knx7V5Cd: { examPackageId: "paramedic", proMonths: 12 },
+  price_1TB6WOHTnaP0wMR8pJh0lBwN: { examPackageId: "nclex", proMonths: 12 },
+  price_1TB6WfHTnaP0wMR8JUH0Aphr: { examPackageId: "mcat", proMonths: 12 },
+  price_1TB6X2HTnaP0wMR8jq3a89V6: { examPackageId: "usmle", proMonths: 12 },
+}
+
 const EXAM_PRICE_MAP: Record<string, string> = {
   price_1TAcZiHTnaP0wMR8i8gXGLS1: "nremt",
   price_1TAcb1HTnaP0wMR8B1kztL3M: "paramedic",
@@ -22,7 +30,7 @@ const EXAM_PRICE_MAP: Record<string, string> = {
 
 function isValidPrice(priceId: string, type: CheckoutType) {
   if (type === "subscription") return SUBSCRIPTION_PRICE_IDS.has(priceId)
-  return Boolean(EXAM_PRICE_MAP[priceId])
+  return Boolean(EXAM_PRICE_MAP[priceId] || BUNDLE_PRICE_MAP[priceId])
 }
 
 export async function POST(req: Request) {
@@ -36,18 +44,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { priceId, type, bundleExamPriceId } = (await req.json()) as {
+    const { priceId, type } = (await req.json()) as {
       priceId?: string
       type?: CheckoutType
-      bundleExamPriceId?: string
     }
 
     if (!priceId || !type || !isValidPrice(priceId, type)) {
       return NextResponse.json({ error: "Invalid checkout request" }, { status: 400 })
-    }
-
-    if (bundleExamPriceId && !EXAM_PRICE_MAP[bundleExamPriceId]) {
-      return NextResponse.json({ error: "Invalid bundle exam price" }, { status: 400 })
     }
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(req.url).origin
@@ -74,16 +77,7 @@ export async function POST(req: Request) {
     }
 
     const examPackageId = type === "payment" ? EXAM_PRICE_MAP[priceId] : null
-    const bundleExamPackageId = bundleExamPriceId ? EXAM_PRICE_MAP[bundleExamPriceId] : null
-
-    const successUrlParams = new URLSearchParams({
-      session_id: "{CHECKOUT_SESSION_ID}",
-    })
-
-    if (type === "subscription" && bundleExamPriceId && bundleExamPackageId) {
-      successUrlParams.set("bundle_exam_price_id", bundleExamPriceId)
-      successUrlParams.set("bundle_exam_package_id", bundleExamPackageId)
-    }
+    const bundleMeta = BUNDLE_PRICE_MAP[priceId]
 
     const session = await stripe.checkout.sessions.create({
       mode: type,
@@ -97,12 +91,13 @@ export async function POST(req: Request) {
         },
       ],
       allow_promotion_codes: true,
-      success_url: `${siteUrl}/success?${successUrlParams.toString()}`,
+      success_url: `${siteUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/dashboard/pricing`,
       metadata: {
         user_id: user.id,
         exam_package_id: examPackageId || "",
-        bundle_exam_package_id: bundleExamPackageId || "",
+        bundle_exam_package_id: bundleMeta?.examPackageId || "",
+        bundle_pro_months: bundleMeta ? String(bundleMeta.proMonths) : "",
       },
       subscription_data:
         type === "subscription"
