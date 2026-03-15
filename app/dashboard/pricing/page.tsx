@@ -157,18 +157,22 @@ export default function PricingPage() {
   }, [])
 
   const buyProduct = async (priceId: string, type: "subscription" | "payment") => {
-    try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId, type }),
-      })
-      const data = await res.json()
-      if (data.url) window.location.href = data.url
-    } catch (err) {
-      console.error("Checkout error:", err)
+  try {
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ priceId, type }),
+    })
+    if (res.status === 401) {
+      window.location.href = "/auth/login"
+      return
     }
+    const data = await res.json()
+    if (data.url) window.location.href = data.url
+  } catch (err) {
+    console.error("Checkout error:", err)
   }
+}
 
   return (
     <div className="space-y-8 pt-12 lg:pt-0">
