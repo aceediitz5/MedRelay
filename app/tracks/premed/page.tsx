@@ -1,4 +1,6 @@
 import Link from "next/link"
+import { redirect } from "next/navigation"
+import { getTrackBySlug } from "@/lib/tracks"
 import { Button } from "@/components/ui/button"
 import {
   Stethoscope,
@@ -92,6 +94,10 @@ function ECGLine({ className }: { className?: string }) {
 }
 
 export default function PreMedTrackPage() {
+  const track = getTrackBySlug("premed")
+  if (track?.status === "coming_soon") {
+    redirect("/tracks/premed/coming-soon")
+  }
   return (
     <div className="min-h-screen bg-[#080c10]">
       {/* Navigation */}
@@ -300,7 +306,7 @@ export default function PreMedTrackPage() {
             <Stethoscope className="w-5 h-5 text-cyan-400" />
             <span className="text-gray-400">MedRelay</span>
           </div>
-          <p className="text-sm text-gray-500">© 2024 MedRelay. All rights reserved.</p>
+          <p className="text-sm text-gray-500">© 2026 MedRelay. All rights reserved.</p>
         </div>
       </footer>
     </div>
