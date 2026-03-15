@@ -9,6 +9,19 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 type CheckoutType = "subscription" | "payment"
 
 const SUBSCRIPTION_PRICE_IDS = new Set([
+  // Basic
+  "price_1TBLOCHTnaP0wMR8VWuwjYYd", // monthly
+  "price_1TBLOSHTnaP0wMR8JdXCWGim", // yearly
+
+  // Pro
+  "price_1TBLMfHTnaP0wMR8iLeA8joU", // monthly
+  "price_1TBLKYHTnaP0wMR8J0AVrJBe", // yearly
+
+  // Premium
+  "price_1TBLPgHTnaP0wMR8nkYpf3zx", // monthly
+  "price_1TBLQ2HTnaP0wMR8xP1rvIiC", // yearly
+
+  // Legacy Pro (if still active)
   "price_1TAcXRHTnaP0wMR8HKQROxnf",
 ])
 
@@ -127,3 +140,4 @@ export async function POST(req: Request) {
     )
   }
 }
+
