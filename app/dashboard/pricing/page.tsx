@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { GlassCard } from "@/components/ui/glass-card"
 import { Button } from "@/components/ui/button"
 import { useSubscription } from "@/lib/subscription/context"
@@ -21,7 +21,6 @@ import {
   ChevronRight,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
- 
 
 const examPackages = [
   {
@@ -101,47 +100,18 @@ const examPackages = [
   },
 ]
 
-const plans = [
-  {
-    name: "Free",
-    price: "$0",
-    period: "forever",
-    icon: BookOpen,
-    description: "Get started with the basics",
-    features: [
-      "Limited daily flashcards and questions",
-      "Preview case simulations",
-      "Basic progress tracking",
-      "Access to select topics",
-    ],
-    cta: "Current Plan",
-    popular: false,
-  },
-  {
-    name: "MedRelay Pro",
-    price: "$12",
-    period: "/month",
-    icon: Crown,
-    description: "Everything you need to pass your exams",
-    features: [
-      "Unlimited flashcard reviews",
-      "Unlimited practice questions",
-      "Full case simulation access",
-      "Advanced analytics & tracking",
-      "XP & achievements system",
-      "All 20+ medical topics",
-      "Daily study engine",
-      "Spaced repetition algorithm",
-    ],
-    cta: "Upgrade to Pro",
-    popular: true,
-    stripePriceId: "price_1TAcXRHTnaP0wMR8HKQROxnf",
-  },
-]
+type SummaryCounts = {
+  flashcards: number
+  questions: number
+  simulations: number
+  practiceExams: number
+}
 
 export default function PricingPage() {
   const { isPro } = useSubscription()
   const [purchasedExams, setPurchasedExams] = useState<string[]>([])
+  const [countsMap, setCountsMap] = useState<Record<string, SummaryCounts>>({})
+
   const bundles = [
     {
       id: "bundle-nremt",
@@ -182,18 +152,96 @@ export default function PricingPage() {
   ]
 
   useEffect(() => {
-    async function fetchPurchases() {
+    let active = true
+
+    const loadPurchases = async () => {
       try {
-        const res = await fetch("/api/user-purchases")
+        const res = await fetch("/api/user-purchases", { cache: "no-store" })
         const data = await res.json()
-        setPurchasedExams(data.purchasedExamIds || [])
+        if (active) setPurchasedExams(data.purchasedExamIds || [])
       } catch (err) {
         console.error("Failed to fetch user purchases", err)
       }
     }
 
-    fetchPurchases()
+    loadPurchases()
+    return () => {
+      active = false
+    }
   }, [])
+
+  useEffect(() => {
+    let active = true
+
+    const loadCounts = async () => {
+      try {
+        const res = await fetch("/api/exam-packages/summary", { cache: "no-store" })
+        if (!res.ok) return
+        const data = await res.json()
+        if (active) setCountsMap(data || {})
+      } catch {
+        // no-op
+      }
+    }
+
+    loadCounts()
+    const id = setInterval(loadCounts, 30000)
+    return () => {
+      active = false
+      clearInterval(id)
+    }
+  }, [])
+
+  const totals = useMemo(() => {
+    return Object.values(countsMap).reduce(
+      (acc, cur) => ({
+        flashcards: acc.flashcards + (cur.flashcards || 0),
+        questions: acc.questions + (cur.questions || 0),
+        simulations: acc.simulations + (cur.simulations || 0),
+        practiceExams: acc.practiceExams + (cur.practiceExams || 0),
+      }),
+      { flashcards: 0, questions: 0, simulations: 0, practiceExams: 0 }
+    )
+  }, [countsMap])
+
+  const plans = [
+    {
+      name: "Free",
+      price: "$0",
+      period: "forever",
+      icon: BookOpen,
+      description: "Get started with the basics",
+      features: [
+        "Limited daily flashcards and questions",
+        "Preview case simulations",
+        "Basic progress tracking",
+        "Access to select topics",
+      ],
+      cta: "Current Plan",
+      popular: false,
+    },
+    {
+      name: "MedRelay Pro",
+      price: "$12",
+      period: "/month",
+      icon: Crown,
+      description: "Everything you need to pass your exams",
+      features: [
+        totals.flashcards ? `${totals.flashcards}+ flashcards unlocked` : "Unlimited flashcard reviews",
+        totals.questions ? `${totals.questions}+ practice questions` : "Unlimited practice questions",
+        totals.simulations ? `${totals.simulations} case simulations` : "Full case simulation access",
+        totals.practiceExams ? `${totals.practiceExams} practice exams` : "Advanced analytics & tracking",
+        "Advanced analytics & tracking",
+        "XP & achievements system",
+        "All 20+ medical topics",
+        "Daily study engine",
+        "Spaced repetition algorithm",
+      ],
+      cta: "Upgrade to Pro",
+      popular: true,
+      stripePriceId: "price_1TAcXRHTnaP0wMR8HKQROxnf",
+    },
+  ]
 
   const buyProduct = async (priceId: string, type: "subscription" | "payment") => {
     try {
@@ -298,44 +346,67 @@ export default function PricingPage() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {bundles.map((bundle) => (
-            <GlassCard
-              key={bundle.id}
-              className={cn("flex flex-col relative", bundle.bestValue && "ring-2 ring-primary")}
-              glow={bundle.bestValue}
-            >
-              {bundle.bestValue && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium flex items-center gap-1">
-                  <Star className="w-3 h-3" /> Best Value
+          {bundles.map((bundle) => {
+            const counts = countsMap[bundle.examId]
+            return (
+              <GlassCard
+                key={bundle.id}
+                className={cn("flex flex-col relative", bundle.bestValue && "ring-2 ring-primary")}
+                glow={bundle.bestValue}
+              >
+                {bundle.bestValue && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium flex items-center gap-1">
+                    <Star className="w-3 h-3" /> Best Value
+                  </div>
+                )}
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-foreground">{bundle.name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    12 months of Pro + {bundle.examId.toUpperCase()} prep.
+                  </p>
                 </div>
-              )}
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold text-foreground">{bundle.name}</h3>
-                <p className="text-sm text-muted-foreground">
-                  12 months of Pro + {bundle.examId.toUpperCase()} prep.
-                </p>
-              </div>
-              <ul className="space-y-2 text-sm text-muted-foreground mb-6">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-success" />
-                  Pro subscription included
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-success" />
-                  Lifetime exam access
-                </li>
-              </ul>
-              <div className="mt-auto">
-                <div className="text-2xl font-bold text-foreground mb-3">${bundle.price}</div>
-                <Button
-                  onClick={() => buyProduct(bundle.stripePriceId, "payment")}
-                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                >
-                  Get bundle
-                </Button>
-              </div>
-            </GlassCard>
-          ))}
+                <ul className="space-y-2 text-sm text-muted-foreground mb-6">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-success" />
+                    Pro subscription included
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-success" />
+                    Lifetime exam access
+                  </li>
+                  {counts && (
+                    <>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-success" />
+                        {counts.flashcards}+ flashcards
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-success" />
+                        {counts.questions}+ questions
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-success" />
+                        {counts.simulations} simulations
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-success" />
+                        {counts.practiceExams} practice exams
+                      </li>
+                    </>
+                  )}
+                </ul>
+                <div className="mt-auto">
+                  <div className="text-2xl font-bold text-foreground mb-3">${bundle.price}</div>
+                  <Button
+                    onClick={() => buyProduct(bundle.stripePriceId, "payment")}
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                  >
+                    Get bundle
+                  </Button>
+                </div>
+              </GlassCard>
+            )
+          })}
         </div>
       </div>
 
@@ -347,8 +418,14 @@ export default function PricingPage() {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           {examPackages.map((pkg, index) => {
+            const counts = countsMap[pkg.id]
             const Icon = pkg.icon
             const isPurchased = purchasedExams.includes(pkg.id)
+            const flashcards = counts?.flashcards ?? pkg.flashcards
+            const questions = counts?.questions ?? pkg.questions
+            const simulations = counts?.simulations ?? pkg.simulations
+            const practiceExams = counts?.practiceExams ?? pkg.practiceExams
+
             return (
               <GlassCard
                 key={pkg.id}
@@ -374,19 +451,19 @@ export default function PricingPage() {
                 <div className="space-y-2 mb-4 flex-1">
                   <div className="flex items-center gap-2 text-xs">
                     <BookOpen className="w-3.5 h-3.5 text-primary" />
-                    <span className="text-muted-foreground">{pkg.flashcards}+ flashcards</span>
+                    <span className="text-muted-foreground">{flashcards}+ flashcards</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs">
                     <HelpCircle className="w-3.5 h-3.5 text-primary" />
-                    <span className="text-muted-foreground">{pkg.questions}+ questions</span>
+                    <span className="text-muted-foreground">{questions}+ questions</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs">
                     <Stethoscope className="w-3.5 h-3.5 text-primary" />
-                    <span className="text-muted-foreground">{pkg.simulations} simulations</span>
+                    <span className="text-muted-foreground">{simulations} simulations</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs">
                     <FileText className="w-3.5 h-3.5 text-primary" />
-                    <span className="text-muted-foreground">{pkg.practiceExams} practice exams</span>
+                    <span className="text-muted-foreground">{practiceExams} practice exams</span>
                   </div>
                 </div>
 
