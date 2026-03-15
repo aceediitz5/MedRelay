@@ -22,6 +22,9 @@ import {
   Flame,
   TrendingUp,
   Users,
+  ClipboardList,
+  Gift,
+  Clock,
 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -35,12 +38,16 @@ const navItems = [
   { href: "/dashboard/questions", label: "Question Bank", icon: HelpCircle },
   { href: "/dashboard/simulations", label: "Case Simulations", icon: Stethoscope },
   { href: "/dashboard/study-plan", label: "Study Plan", icon: Calendar },
+  { href: "/dashboard/practice-exam", label: "Practice Exam", icon: Clock },
   { href: "/dashboard/exam-prep", label: "Exam Prep", icon: Package },
   { href: "/dashboard/exam-readiness", label: "Exam Readiness", icon: Shield },
   { href: "/dashboard/weak-topics", label: "Weak Topics", icon: TrendingUp },
   { href: "/dashboard/progress", label: "Progress", icon: BarChart2 },
   { href: "/dashboard/achievements", label: "Achievements", icon: Trophy },
   { href: "/dashboard/leaderboard", label: "Leaderboard", icon: Users },
+  { href: "/dashboard/weekly-recap", label: "Weekly Recap", icon: ClipboardList },
+  { href: "/dashboard/referrals", label: "Referrals", icon: Gift },
+  { href: "/dashboard/instructor", label: "Instructor", icon: Users },
 ]
 
 const bottomItems = [
@@ -185,4 +192,3 @@ export function Sidebar({ user }: SidebarProps) {
     </>
   )
 }
-
