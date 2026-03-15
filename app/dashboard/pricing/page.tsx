@@ -21,12 +21,7 @@ import {
   ChevronRight,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+ 
 
 const examPackages = [
   {
@@ -147,8 +142,44 @@ const plans = [
 export default function PricingPage() {
   const { isPro } = useSubscription()
   const [purchasedExams, setPurchasedExams] = useState<string[]>([])
-  const [bundleDialogOpen, setBundleDialogOpen] = useState(false)
-  const bundleAllPriceId = process.env.NEXT_PUBLIC_BUNDLE_PRICE_ID || ""
+  const bundles = [
+    {
+      id: "bundle-nremt",
+      name: "Pro + NREMT",
+      price: 129,
+      stripePriceId: "price_1TB6VXHTnaP0wMR8NXSJAdD6",
+      examId: "nremt",
+    },
+    {
+      id: "bundle-paramedic",
+      name: "Pro + Paramedic",
+      price: 159,
+      stripePriceId: "price_1TB6VyHTnaP0wMR8Knx7V5Cd",
+      examId: "paramedic",
+    },
+    {
+      id: "bundle-nclex",
+      name: "Pro + NCLEX",
+      price: 179,
+      stripePriceId: "price_1TB6WOHTnaP0wMR8pJh0lBwN",
+      examId: "nclex",
+    },
+    {
+      id: "bundle-mcat",
+      name: "Pro + MCAT",
+      price: 229,
+      stripePriceId: "price_1TB6WfHTnaP0wMR8JUH0Aphr",
+      examId: "mcat",
+    },
+    {
+      id: "bundle-usmle",
+      name: "Pro + USMLE Step 1",
+      price: 279,
+      stripePriceId: "price_1TB6X2HTnaP0wMR8jq3a89V6",
+      examId: "usmle",
+      bestValue: true,
+    },
+  ]
 
   useEffect(() => {
     async function fetchPurchases() {
@@ -164,16 +195,12 @@ export default function PricingPage() {
     fetchPurchases()
   }, [])
 
-  const buyProduct = async (
-    priceId: string,
-    type: "subscription" | "payment",
-    bundleExamPriceId?: string
-  ) => {
+  const buyProduct = async (priceId: string, type: "subscription" | "payment") => {
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId, type, bundleExamPriceId }),
+        body: JSON.stringify({ priceId, type }),
       })
       if (res.status === 401) {
         window.location.href = "/auth/login"
@@ -266,42 +293,26 @@ export default function PricingPage() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-foreground">Bundles</h2>
           <p className="text-muted-foreground">
-            Save more when you pair Pro with exam prep.
+            One-time purchase. Includes 12 months of Pro + lifetime exam access.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          <GlassCard className="flex flex-col">
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold text-foreground">Pro + 1 Exam Pack</h3>
-              <p className="text-sm text-muted-foreground">
-                Start Pro now and pick one exam prep package.
-              </p>
-            </div>
-            <ul className="space-y-2 text-sm text-muted-foreground mb-6">
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-success" />
-                Pro subscription included
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-success" />
-                One-time exam package purchase
-              </li>
-            </ul>
-            <Button
-              onClick={() => setBundleDialogOpen(true)}
-              className="mt-auto bg-primary text-primary-foreground hover:bg-primary/90"
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {bundles.map((bundle) => (
+            <GlassCard
+              key={bundle.id}
+              className={cn("flex flex-col relative", bundle.bestValue && "ring-2 ring-primary")}
+              glow={bundle.bestValue}
             >
-              Choose exam pack
-            </Button>
-          </GlassCard>
-
-          {bundleAllPriceId ? (
-            <GlassCard className="flex flex-col ring-2 ring-primary">
+              {bundle.bestValue && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium flex items-center gap-1">
+                  <Star className="w-3 h-3" /> Best Value
+                </div>
+              )}
               <div className="mb-4">
-                <h3 className="text-lg font-semibold text-foreground">Pro + All Exam Packs</h3>
+                <h3 className="text-lg font-semibold text-foreground">{bundle.name}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Best value for full access across all certifications.
+                  12 months of Pro + {bundle.examId.toUpperCase()} prep.
                 </p>
               </div>
               <ul className="space-y-2 text-sm text-muted-foreground mb-6">
@@ -311,29 +322,20 @@ export default function PricingPage() {
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-success" />
-                  All exam packages unlocked
+                  Lifetime exam access
                 </li>
               </ul>
-              <Button
-                onClick={() => buyProduct(bundleAllPriceId, "payment")}
-                className="mt-auto bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                Get all-access bundle
-              </Button>
-            </GlassCard>
-          ) : (
-            <GlassCard className="flex flex-col border-dashed border-primary/30">
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold text-foreground">Pro + All Exam Packs</h3>
-                <p className="text-sm text-muted-foreground">
-                  Bundle price will appear here once configured in Stripe.
-                </p>
+              <div className="mt-auto">
+                <div className="text-2xl font-bold text-foreground mb-3">${bundle.price}</div>
+                <Button
+                  onClick={() => buyProduct(bundle.stripePriceId, "payment")}
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  Get bundle
+                </Button>
               </div>
-              <Button className="mt-auto" disabled>
-                Bundle coming soon
-              </Button>
             </GlassCard>
-          )}
+          ))}
         </div>
       </div>
 
@@ -401,40 +403,6 @@ export default function PricingPage() {
           })}
         </div>
       </div>
-      <Dialog open={bundleDialogOpen} onOpenChange={setBundleDialogOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Select your exam pack</DialogTitle>
-          </DialogHeader>
-          <div className="grid sm:grid-cols-2 gap-4">
-            {examPackages.map((pkg) => {
-              const Icon = pkg.icon
-              return (
-              <GlassCard key={pkg.id} className="flex flex-col">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br", pkg.color)}>
-                    <Icon className={cn("w-5 h-5", pkg.iconColor)} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-foreground">{pkg.name}</h3>
-                    <p className="text-xs text-muted-foreground">{pkg.duration}</p>
-                  </div>
-                </div>
-                <Button
-                  onClick={() => {
-                    setBundleDialogOpen(false)
-                    buyProduct("price_1TAcXRHTnaP0wMR8HKQROxnf", "subscription", pkg.stripePriceId)
-                  }}
-                  className="mt-auto bg-primary text-primary-foreground hover:bg-primary/90"
-                >
-                  Bundle with Pro
-                </Button>
-              </GlassCard>
-              )
-            })}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
