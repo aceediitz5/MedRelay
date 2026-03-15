@@ -1,10 +1,10 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { TrackWaitlistForm } from "@/components/waitlist/track-waitlist-form"
 import {
   Stethoscope,
   BookOpen,
   HelpCircle,
-  ArrowRight,
   ArrowLeft,
   Activity,
   Hospital,
@@ -15,7 +15,6 @@ import {
   Thermometer,
   Shield,
   HeartPulse,
-  CheckCircle,
   Droplet,
   Scissors,
   Beaker,
@@ -137,6 +136,8 @@ export default function NursingTrackPage() {
               Coming Soon
             </Button>
           </div>
+
+          <TrackWaitlistForm track="nursing" />
         </div>
       </section>
 
